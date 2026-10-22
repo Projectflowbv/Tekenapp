@@ -13,17 +13,7 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:non
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;height:100dvh}
 button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-family:inherit}
 
-.toolbar{flex:0 0 auto;background:#fff;border-bottom:1px solid var(--line);transition: padding 0.2s;}
-
-/* === FIX VOOR IPAD SPLIT VIEW / STAGE MANAGER === */
-/* Duwt de werkbalk naar beneden en naar rechts, ALTIJD, zodat de vensterknoppen nooit overlappen */
-@media (min-width: 400px) {
-  .toolbar {
-    padding-top: 45px !important;
-    padding-left: 75px !important;
-  }
-}
-
+.toolbar{flex:0 0 auto;background:#fff;border-bottom:1px solid var(--line);padding-top:calc(4px + env(safe-area-inset-top));padding-bottom:4px}
 .tbar-row{display:flex;gap:6px;align-items:center;padding:4px 8px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;white-space:nowrap;scrollbar-width:none}
 .tbar-row::-webkit-scrollbar{display:none}
 .tbar-sep{width:1px;height:24px;background:var(--line);flex-shrink:0;margin:0 2px}
@@ -74,7 +64,6 @@ button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-
 .sym-btn.floor-btn.active{background:#FFF3C4;border-color:#B58500}
 .sym-btn.floor-btn svg{width:24px;height:24px}
 
-/* Lichtgrijze achtergrond terug */
 #canvas-wrapper{overflow:auto;background:#e9ecef;position:relative;-webkit-overflow-scrolling:touch;user-select:none;-webkit-user-select:none;touch-action:pan-x pan-y}
 #canvas-wrapper.drawing{touch-action:none;overflow:hidden}
 #stage{display:block;user-select:none;-webkit-user-select:none}
@@ -942,21 +931,19 @@ function fitImageToStage(meta){
   img.onload = () => {
     sizeToWrapper();
     
-    // FIX: Gebruik Math.max in plaats van Math.min om de foto het HELE scherm te laten vullen (geen grijze balken meer)
     const scaleX = STAGE_W / meta.w;
     const scaleY = STAGE_H / meta.h;
-    const scale = Math.max(scaleX, scaleY); 
+    const scale = Math.min(scaleX, scaleY);
     
     const iw = meta.w * scale;
     const ih = meta.h * scale;
-    const sw = Math.ceil(iw);
-    const sh = Math.ceil(ih);
+    const sw = Math.max(STAGE_W, Math.ceil(iw));
+    const sh = Math.max(STAGE_H, Math.ceil(ih));
     resizeStage(sw, sh);
     
-    const ix = (sw - iw) / 2;
-    const iy = (sh - ih) / 2;
+    const ix = Math.max(0, (sw - iw) / 2);
+    const iy = Math.max(0, (sh - ih) / 2);
     
-    // Schaduw is niet meer nodig omdat de foto het hele scherm vult
     bgImageNode.setAttrs({
       image: img, x: ix, y: iy, width: iw, height: ih,
       shadowColor: 'transparent', shadowBlur: 0, shadowOpacity: 0, shadowOffset: {x: 0, y: 0}
@@ -1204,11 +1191,10 @@ async function compressToJpeg(dataURL, maxKB){
 }
 async function exportCroppedURL(){
   for(let i=0; i<40; i++){
-    try',{
-      const im = bgImageNode handle.image && bgImageNode.image();
-      ifRes(im && im.complete && im.nizeaturalWidth > );
-0) break;
-    }catch(_){ }
+    try{
+      const im = bgImageNode.image && bgImageNode.image();
+      if(im && im.complete && im.naturalWidth > 0) break;
+    }catch(_){}
     await new Promise(r => setTimeout(r, 30));
   }
   const rect = bgImageNode.getClientRect({ skipShadow:true, skipStroke:true });
@@ -1450,7 +1436,8 @@ if(window.ResizeObserver){
   });
   ro.observe(document.getElementById('canvas-wrapper'));
 } else {
-  window.addEventListener('resize window.addEventListener('orientationchange', () => setTimeout(handleResize, 300));
+  window.addEventListener('resize', handleResize);
+  window.addEventListener('orientationchange', () => setTimeout(handleResize, 300));
 }
 requestAnimationFrame(() => sizeToWrapper());
 window.addEventListener('load', () => setTimeout(sizeToWrapper, 100));
@@ -1464,7 +1451,7 @@ document.addEventListener('touchend', e => {
 }, { passive:false });
 
 updateBottomBar();
-console.log('Tekenapp Fiber v20');
+console.log('Tekenapp Fiber v16');
 })();
 </script>
 
