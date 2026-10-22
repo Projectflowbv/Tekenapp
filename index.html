@@ -13,6 +13,13 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:non
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;height:100dvh}
 button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-family:inherit}
 
+/* Grijze ruimte bovenaan voor de Mac/iPad vensterknoppen */
+.spacer-top {
+  height: 50px;
+  flex-shrink: 0;
+  background: var(--bg);
+}
+
 .toolbar{flex:0 0 auto;background:#fff;border-bottom:1px solid var(--line);padding-top:calc(4px + env(safe-area-inset-top));padding-bottom:4px}
 .tbar-row{display:flex;gap:6px;align-items:center;padding:4px 8px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;white-space:nowrap;scrollbar-width:none}
 .tbar-row::-webkit-scrollbar{display:none}
@@ -137,8 +144,8 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
 </head>
 <body>
 
-<!-- Grijze ruimte bovenaan om Mac/iPad knoppen vrij te houden -->
-<div style="height: 45px; flex-shrink: 0; background: var(--bg);"></div>
+<!-- Grijze ruimte bovenaan voor de Mac/iPad vensterknoppen -->
+<div class="spacer-top"></div>
 
 <div class="toolbar">
   <div class="tbar-row">
@@ -936,7 +943,7 @@ function fitImageToStage(meta){
     
     const scaleX = STAGE_W / meta.w;
     const scaleY = STAGE_H / meta.h;
-    const scale = Math.min(scaleX, scaleY);
+    const scale = Math.min(scaleX, scaleY); // Zorgt dat de hele foto past (zoals gewenst)
     
     const iw = meta.w * scale;
     const ih = meta.h * scale;
@@ -945,7 +952,7 @@ function fitImageToStage(meta){
     resizeStage(sw, sh);
     
     const ix = Math.max(0, (sw - iw) / 2);
-    // FOTO ONDERAAN UITLIJNEN (grijze ruimte komt bovenaan)
+    // FOTO ONDERAAN PLAKKEN (grijze ruimte komt bovenaan)
     const iy = Math.max(0, sh - ih);
     
     bgImageNode.setAttrs({
@@ -961,7 +968,7 @@ function centerViewportOnBg(){
   const wrap = document.getElementById('canvas-wrapper');
   const cx = bgImageNode.x() + bgImageNode.width()/2;
   wrap.scrollLeft = Math.max(0, cx - wrap.clientWidth/2);
-  wrap.scrollTop = 0; // Zorg dat we bovenaan beginnen (grijze ruimte)
+  wrap.scrollTop = 0; // Start bovenaan in de grijze ruimte
 }
 
 function loadImageAt(i){
