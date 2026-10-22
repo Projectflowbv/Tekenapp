@@ -18,6 +18,13 @@ button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-
 .tbar-row::-webkit-scrollbar{display:none}
 .tbar-sep{width:1px;height:24px;background:var(--line);flex-shrink:0;margin:0 2px}
 
+/* macOS / Desktop spacer: duwt de knoppen onder de Apple vensterknoppen vandaan */
+@media (min-width: 768px) {
+  .toolbar {
+    padding-top: 36px !important;
+  }
+}
+
 .btn{border:none;background:var(--brand);color:#fff;border-radius:8px;padding:0 12px;font-size:14px;font-weight:600;cursor:pointer;height:40px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center}
 .btn:active{background:var(--brand-dark)}
 .btn:disabled{opacity:.4}
@@ -40,7 +47,6 @@ button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-
 .ltype-btn .swatch.dashed.orange{background-image:repeating-linear-gradient(90deg,#FFC000 0 6px,transparent 6px 11px)}
 .ltype-btn .lbl{font-size:8px;color:#555;line-height:1;letter-spacing:.2px}
 
-/* Gestapelde zwarte-lijn knoppen (dashed + solid) */
 .ltype-wrap{display:flex;flex-direction:column;gap:3px;width:64px;height:40px;flex-shrink:0}
 .ltype-wrap .ltype-btn.compact{flex:1;min-width:0;width:100%;height:auto;padding:0 6px;flex-direction:row;gap:0;border-width:2px}
 .ltype-wrap .ltype-btn.compact .swatch{width:100%;height:3px}
@@ -65,7 +71,8 @@ button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-
 .sym-btn.floor-btn.active{background:#FFF3C4;border-color:#B58500}
 .sym-btn.floor-btn svg{width:24px;height:24px}
 
-#canvas-wrapper{overflow:auto;background:#e9ecef;position:relative;-webkit-overflow-scrolling:touch;user-select:none;-webkit-user-select:none;touch-action:pan-x pan-y}
+/* Canvas werkruimte donkerder gemaakt */
+#canvas-wrapper{overflow:auto;background:#222;position:relative;-webkit-overflow-scrolling:touch;user-select:none;-webkit-user-select:none;touch-action:pan-x pan-y}
 #canvas-wrapper.drawing{touch-action:none;overflow:hidden}
 #stage{display:block;user-select:none;-webkit-user-select:none}
 
@@ -278,8 +285,6 @@ if(typeof Konva === 'undefined'){
   return;
 }
 
-/* Publiek (dashed) en Publiek-vol (solid) worden NIET in de hoofdloop gezet;
-   die krijgen een gestapelde wrapper. */
 const LINE_TYPES = {
   publiek:       { label:'', color:'#000000', width:8, dash:[16,12], dashedClass:'black', pointerLen:18 },
   publiek_solid: { label:'', color:'#000000', width:8, dash:null,                          pointerLen:18 },
@@ -341,7 +346,6 @@ stage.add(bgLayer); stage.add(drawLayer);
 const bgImageNode = new Konva.Image({ listening:false, draggable:false, perfectDrawEnabled:false, shadowForStrokeEnabled:false });
 bgLayer.add(bgImageNode);
 
-/* Minimum formaat verlaagd van 20 naar 6 zodat de rode stip kleiner kan. */
 const MIN_SHAPE_PX = 6;
 const transformer = new Konva.Transformer({
   rotateEnabled:true,
@@ -612,7 +616,6 @@ Object.keys(toolBtnMap).forEach(t => {
 });
 setTool('select');
 
-/* Gedeelde klik-afhandeling voor lijntypes */
 function selectLineType(key){
   currentLineType = key;
   document.querySelectorAll('.ltype-btn').forEach(x => x.classList.remove('active'));
@@ -625,7 +628,6 @@ function selectLineType(key){
 (function buildLineTypes(){
   const row = document.getElementById('linetype-row');
 
-  /* 1. Gestapelde zwarte-knop: boven dashed, onder solid */
   const wrap = document.createElement('div');
   wrap.className = 'ltype-wrap';
 
@@ -647,7 +649,6 @@ function selectLineType(key){
 
   row.appendChild(wrap);
 
-  /* 2. Alle andere lijntypes — publiek & publiek_solid overslaan */
   Object.keys(LINE_TYPES).forEach(key => {
     if(key === 'publiek' || key === 'publiek_solid') return;
     const def = LINE_TYPES[key];
@@ -662,7 +663,6 @@ function selectLineType(key){
     row.appendChild(b);
   });
 
-  /* 3. Scheiding + gele-tekst knoppen */
   const sep = document.createElement('div');
   sep.className = 'tbar-sep';
   row.appendChild(sep);
@@ -771,7 +771,6 @@ function makeSymbolShape(kind, color, def){
   if(kind === 'triangle') return new Konva.RegularPolygon({ sides:3, radius:22, fill:color, stroke:'#000', strokeWidth:1.5, perfectDrawEnabled:false });
   if(kind === 'diamond')  return new Konva.RegularPolygon({ sides:4, radius:22, fill:color, stroke:'#000', strokeWidth:1.5, perfectDrawEnabled:false });
   if(kind === 'square')   return new Konva.Rect({ x:-20, y:-20, width:40, height:40, fill:color, stroke:'#000', strokeWidth:1.5, perfectDrawEnabled:false });
-  /* Startgrootte boorgat ONGEWIJZIGD: radius 10 */
   if(kind === 'circle')   return new Konva.Circle({ radius:10, fill:color, stroke:'#000', strokeWidth:1.5, perfectDrawEnabled:false });
   if(kind === 'label'){
     const w = def.w || 48, h = def.h || 30, fs = def.fs || 15;
@@ -949,7 +948,12 @@ function fitImageToStage(meta){
     resizeStage(sw, sh);
     const ix = Math.max(0, (sw - iw) / 2);
     const iy = Math.max(0, (sh - ih) / 2);
-    bgImageNode.setAttrs({ image:img, x:ix, y:iy, width:iw, height:ih });
+    
+    // Voeg een schaduw toe aan de afbeelding voor een betere look in de donkere ruimte
+    bgImageNode.setAttrs({
+      image: img, x: ix, y: iy, width: iw, height: ih,
+      shadowColor: '#000', shadowBlur: 12, shadowOpacity: 0.6, shadowOffset: {x: 0, y: 4}
+    });
     bgLayer.batchDraw();
     centerViewportOnBg();
   };
@@ -1453,7 +1457,7 @@ document.addEventListener('touchend', e => {
 }, { passive:false });
 
 updateBottomBar();
-console.log('Tekenapp Fiber v16');
+console.log('Tekenapp Fiber v17');
 })();
 </script>
 
