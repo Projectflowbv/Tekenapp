@@ -137,6 +137,9 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
 </head>
 <body>
 
+<!-- Grijze ruimte bovenaan om Mac/iPad knoppen vrij te houden -->
+<div style="height: 45px; flex-shrink: 0; background: var(--bg);"></div>
+
 <div class="toolbar">
   <div class="tbar-row">
     <button id="toggle-left" class="icon-btn" title="Foto's">☰</button>
@@ -942,7 +945,8 @@ function fitImageToStage(meta){
     resizeStage(sw, sh);
     
     const ix = Math.max(0, (sw - iw) / 2);
-    const iy = Math.max(0, (sh - ih) / 2);
+    // FOTO ONDERAAN UITLIJNEN (grijze ruimte komt bovenaan)
+    const iy = Math.max(0, sh - ih);
     
     bgImageNode.setAttrs({
       image: img, x: ix, y: iy, width: iw, height: ih,
@@ -956,9 +960,8 @@ function fitImageToStage(meta){
 function centerViewportOnBg(){
   const wrap = document.getElementById('canvas-wrapper');
   const cx = bgImageNode.x() + bgImageNode.width()/2;
-  const cy = bgImageNode.y() + bgImageNode.height()/2;
   wrap.scrollLeft = Math.max(0, cx - wrap.clientWidth/2);
-  wrap.scrollTop = Math.max(0, cy - wrap.clientHeight/2);
+  wrap.scrollTop = 0; // Zorg dat we bovenaan beginnen (grijze ruimte)
 }
 
 function loadImageAt(i){
@@ -1451,7 +1454,7 @@ document.addEventListener('touchend', e => {
 }, { passive:false });
 
 updateBottomBar();
-console.log('Tekenapp Fiber v16');
+console.log('Tekenapp Fiber v21');
 })();
 </script>
 
