@@ -9,17 +9,58 @@
 <style>
 :root{--brand:#C00000;--brand-dark:#8A0000;--bg:#f1f3f5;--panel:#fff;--line:#e2e5ea;--text:#1c2024;--accent:#0B4EA2}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:none;position:fixed;width:100%;background:#f1f3f5}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--text);display:flex;flex-direction:column}
+
+html{
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  height:100dvh;
+  overflow:hidden;
+  background:var(--bg);
+  overscroll-behavior:none;
+}
+
+body{
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  height:100dvh;
+  min-height:100dvh;
+  overflow:hidden;
+  position:fixed;
+  inset:0;
+
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  color:var(--text);
+
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto;
+  background:var(--bg);
+}
+
+@supports not (height:100dvh){
+  html,
+  body{
+    height:var(--app-height, 100vh);
+    min-height:var(--app-height, 100vh);
+  }
+}
+
 button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-family:inherit}
 
-/* Werkbalk begint direct onder de iPadOS vensterknoppen (rode/gele/groene bollen) */
+/* Toolbar */
 .toolbar{
-  flex:0 0 auto;
+  position:relative;
+  z-index:100;
+  min-width:0;
   background:#fff;
   border-bottom:1px solid var(--line);
-  padding-top: 50px; /* Exacte ruimte voor de 3 vensterknoppen */
-  padding-bottom: 4px;
+
+  /* Werkbalk direct onder de drie iPad-vensterknoppen */
+  padding-top:max(8px, env(safe-area-inset-top));
+  padding-bottom:4px;
 }
 .tbar-row{display:flex;gap:6px;align-items:center;padding:4px 8px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;white-space:nowrap;scrollbar-width:none}
 .tbar-row::-webkit-scrollbar{display:none}
@@ -58,7 +99,15 @@ button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-
 .yt-btn .yt-txt{font-size:11px;font-weight:800;color:#8A6A00;line-height:1}
 .yt-btn .yt-lbl{font-size:8px;color:#666;line-height:1;letter-spacing:.2px}
 
-#main{flex:1;min-height:0;display:grid;grid-template-columns:82px 1fr;overflow:hidden}
+/* Main */
+#main{
+  min-width:0;
+  min-height:0;
+  height:100%;
+  display:grid;
+  grid-template-columns:82px minmax(0,1fr);
+  overflow:hidden;
+}
 #symbol-bar{background:#fff;border-right:1px solid var(--line);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:4px 3px;display:flex;flex-direction:column;gap:4px}
 #symbol-bar::-webkit-scrollbar{width:0}
 .sym-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:5px 2px;border:2px solid var(--line);background:#fff;border-radius:8px;cursor:pointer;min-height:58px;flex-shrink:0}
@@ -71,8 +120,19 @@ button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-
 .sym-btn.floor-btn.active{background:#FFF3C4;border-color:#B58500}
 .sym-btn.floor-btn svg{width:24px;height:24px}
 
-/* Canvas wrapper */
-#canvas-wrapper{overflow:auto;background:#e9ecef;position:relative;-webkit-overflow-scrolling:touch;user-select:none;-webkit-user-select:none;touch-action:pan-x pan-y}
+#canvas-wrapper{
+  min-width:0;
+  min-height:0;
+  width:100%;
+  height:100%;
+  overflow:auto;
+  background:#e9ecef;
+  position:relative;
+  -webkit-overflow-scrolling:touch;
+  user-select:none;
+  -webkit-user-select:none;
+  touch-action:pan-x pan-y;
+}
 #canvas-wrapper.drawing{touch-action:none;overflow:hidden}
 #stage{display:block;user-select:none;-webkit-user-select:none}
 
@@ -98,15 +158,43 @@ button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-
   .yt-btn{min-width:86px}
 }
 
-/* Onderbalk strak op de absolute bodem */
+/* Bottom bar */
 .bottom-bar{
-  flex:0 0 auto; display:flex; gap:6px; align-items:center;
-  padding: 6px 10px;
-  padding-bottom: 0; /* Geen marge onderaan */
-  background:#fff; border-top:1px solid var(--line); z-index:100;
-  width: 100%;
+  position:relative;
+  z-index:1000;
+
+  width:100%;
+  min-width:0;
+  min-height:56px;
+
+  display:flex;
+  gap:6px;
+  align-items:center;
+
+  margin:0;
+  padding:6px 10px;
+  padding-bottom:max(6px, env(safe-area-inset-bottom));
+
+  background:#fff;
+  border-top:1px solid var(--line);
 }
-.bb-btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:0 12px;height:44px;min-width:50px;font-size:16px;font-weight:700;cursor:pointer;color:#333;display:inline-flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0}
+.bb-btn{
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:8px;
+  padding:0 12px;
+  height:44px;
+  min-width:50px;
+  font-size:16px;
+  font-weight:700;
+  cursor:pointer;
+  color:#333;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  flex-shrink:0;
+}
 .bb-btn:active{background:#f1f3f5}
 .bb-btn:disabled{opacity:.35}
 .bb-btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
@@ -115,6 +203,7 @@ button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-
 .bb-btn .ico{font-size:18px;line-height:1}
 .bb-info{font-size:13px;color:#666;padding:0 10px;font-weight:600;margin-left:auto;white-space:nowrap}
 
+/* Drawers / Panels */
 .panel{position:fixed;top:0;bottom:0;width:min(90vw,380px);z-index:2000;background:#fff;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.3);transition:transform .25s ease;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
 .panel-left{left:0;transform:translateX(-105%)}
 .panel-right{right:0;transform:translateX(105%)}
@@ -948,8 +1037,7 @@ function fitImageToStage(meta){
     
     const scaleX = STAGE_W / meta.w;
     const scaleY = STAGE_H / meta.h;
-    // FOTO WORDT WEER VOLLEDIG IN BEELD GEBRACHT (Math.min)
-    const scale = Math.min(scaleX, scaleY); 
+    const scale = Math.min(scaleX, scaleY);
     
     const iw = meta.w * scale;
     const ih = meta.h * scale;
@@ -1447,24 +1535,74 @@ if(window.showDirectoryPicker){
   if(hint) hint.style.display = 'block';
 }
 
-function handleResize(){
-  const meta = imageFiles[currentIndex];
-  sizeToWrapper();
-  if(meta) fitImageToStage(meta);
-}
-if(window.ResizeObserver){
-  const ro = new ResizeObserver(() => {
-    if(ro._t) cancelAnimationFrame(ro._t);
-    ro._t = requestAnimationFrame(handleResize);
-  });
-  ro.observe(document.getElementById('canvas-wrapper'));
-} else {
-  window.addEventListener('resize', handleResize);
-  window.addEventListener('orientationchange', () => setTimeout(handleResize, 300));
+/* ============================================================
+   NIEUWE VIEWPORT LOGICA
+   ============================================================ */
+function syncViewportHeight(){
+  const viewportHeight = window.visualViewport
+    ? window.visualViewport.height
+    : window.innerHeight;
+
+  document.documentElement.style.setProperty(
+    '--app-height',
+    Math.round(viewportHeight) + 'px'
+  );
 }
 
-requestAnimationFrame(() => sizeToWrapper());
-window.addEventListener('load', () => setTimeout(sizeToWrapper, 100));
+let resizeFrame = 0;
+let resizeTimer = 0;
+
+function handleResize(){
+  cancelAnimationFrame(resizeFrame);
+  clearTimeout(resizeTimer);
+
+  resizeFrame = requestAnimationFrame(() => {
+    syncViewportHeight();
+    sizeToWrapper();
+
+    resizeTimer = setTimeout(() => {
+      const meta = imageFiles[currentIndex];
+
+      sizeToWrapper();
+
+      if(meta){
+        fitImageToStage(meta);
+      }else{
+        const wrap = document.getElementById('canvas-wrapper');
+        resizeStage(
+          Math.max(200, wrap.clientWidth),
+          Math.max(200, wrap.clientHeight)
+        );
+      }
+    }, 120);
+  });
+}
+
+if(window.ResizeObserver){
+  const ro = new ResizeObserver(handleResize);
+  ro.observe(document.getElementById('canvas-wrapper'));
+}
+
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', handleResize);
+  window.visualViewport.addEventListener('scroll', handleResize);
+}
+
+window.addEventListener('pageshow', handleResize);
+window.addEventListener('orientationchange', () => {
+  setTimeout(handleResize, 250);
+});
+
+syncViewportHeight();
+
+requestAnimationFrame(() => {
+  handleResize();
+});
+
+window.addEventListener('load', () => {
+  setTimeout(handleResize, 100);
+  setTimeout(handleResize, 400);
+});
 
 document.addEventListener('gesturestart', e => e.preventDefault());
 let lastTouchEnd = 0;
@@ -1475,7 +1613,7 @@ document.addEventListener('touchend', e => {
 }, { passive:false });
 
 updateBottomBar();
-console.log('Tekenapp Fiber v26');
+console.log('Tekenapp Fiber v27');
 })();
 </script>
 
