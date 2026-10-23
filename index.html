@@ -13,14 +13,14 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:non
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--text);display:flex;flex-direction:column}
 button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-family:inherit}
 
-/* Grijze ruimte bovenaan voor de Mac/iPad vensterknoppen */
-.spacer-top {
-  height: 50px;
-  flex-shrink: 0;
-  background: #f1f3f5;
+/* Werkbalk begint direct onder de iPadOS vensterknoppen (rode/gele/groene bollen) */
+.toolbar{
+  flex:0 0 auto;
+  background:#fff;
+  border-bottom:1px solid var(--line);
+  padding-top: 50px; /* Exacte ruimte voor de 3 vensterknoppen */
+  padding-bottom: 4px;
 }
-
-.toolbar{flex:0 0 auto;background:#fff;border-bottom:1px solid var(--line);padding-top:calc(4px + env(safe-area-inset-top));padding-bottom:4px}
 .tbar-row{display:flex;gap:6px;align-items:center;padding:4px 8px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;white-space:nowrap;scrollbar-width:none}
 .tbar-row::-webkit-scrollbar{display:none}
 .tbar-sep{width:1px;height:24px;background:var(--line);flex-shrink:0;margin:0 2px}
@@ -98,11 +98,11 @@ button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-
   .yt-btn{min-width:86px}
 }
 
-/* Onderbalk strak op de bodem */
+/* Onderbalk strak op de absolute bodem */
 .bottom-bar{
   flex:0 0 auto; display:flex; gap:6px; align-items:center;
   padding: 6px 10px;
-  padding-bottom: max(6px, env(safe-area-inset-bottom));
+  padding-bottom: 0; /* Geen marge onderaan */
   background:#fff; border-top:1px solid var(--line); z-index:100;
   width: 100%;
 }
@@ -151,9 +151,6 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
 </style>
 </head>
 <body>
-
-<!-- Grijze ruimte bovenaan voor de Mac/iPad vensterknoppen -->
-<div class="spacer-top"></div>
 
 <div class="toolbar">
   <div class="tbar-row">
@@ -1235,7 +1232,6 @@ async function exportCroppedURL(){
   return url;
 }
 
-// VEILIGE DOWNLOAD VOOR IPAD PWA
 function downloadBlob(name, blob){
   const a = document.createElement('a');
   const url = URL.createObjectURL(blob);
@@ -1479,7 +1475,7 @@ document.addEventListener('touchend', e => {
 }, { passive:false });
 
 updateBottomBar();
-console.log('Tekenapp Fiber v25');
+console.log('Tekenapp Fiber v26');
 })();
 </script>
 
