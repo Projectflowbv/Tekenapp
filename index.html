@@ -7,9 +7,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Tekenapp Fiber</title>
 <style>
-:root{--brand:#C00000;--brand-dark:#8A0000;--bg:#fff;--panel:#fff;--line:#e2e5ea;--text:#1c2024;--accent:#0B4EA2}
+:root{--brand:#C00000;--brand-dark:#8A0000;--bg:#f1f3f5;--panel:#fff;--line:#e2e5ea;--text:#1c2024;--accent:#0B4EA2}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:none;position:fixed;width:100%;background:#fff}
+html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:none;position:fixed;width:100%;background:#f1f3f5}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--text);display:flex;flex-direction:column}
 button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-family:inherit}
 
@@ -71,6 +71,7 @@ button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-
 .sym-btn.floor-btn.active{background:#FFF3C4;border-color:#B58500}
 .sym-btn.floor-btn svg{width:24px;height:24px}
 
+/* Canvas wrapper */
 #canvas-wrapper{overflow:auto;background:#e9ecef;position:relative;-webkit-overflow-scrolling:touch;user-select:none;-webkit-user-select:none;touch-action:pan-x pan-y}
 #canvas-wrapper.drawing{touch-action:none;overflow:hidden}
 #stage{display:block;user-select:none;-webkit-user-select:none}
@@ -97,13 +98,13 @@ button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-
   .yt-btn{min-width:86px}
 }
 
-/* Onderbalk zit nu strak op de bodem, geen grijze ruimte meer */
+/* Onderbalk strak op de bodem */
 .bottom-bar{
   flex:0 0 auto; display:flex; gap:6px; align-items:center;
   padding: 6px 10px;
-  padding-bottom: calc(6px + env(safe-area-inset-bottom));
+  padding-bottom: max(6px, env(safe-area-inset-bottom));
   background:#fff; border-top:1px solid var(--line); z-index:100;
-  margin-bottom: 0;
+  width: 100%;
 }
 .bb-btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:0 12px;height:44px;min-width:50px;font-size:16px;font-weight:700;cursor:pointer;color:#333;display:inline-flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0}
 .bb-btn:active{background:#f1f3f5}
@@ -906,7 +907,6 @@ async function handleFiles(files){
   }
   renderThumbs();
   loadImageAt(currentIndex);
-  saveToLocalStorage();
 }
 
 function renderThumbs(){
@@ -951,7 +951,7 @@ function fitImageToStage(meta){
     
     const scaleX = STAGE_W / meta.w;
     const scaleY = STAGE_H / meta.h;
-    // FOTO WEER VOLLEDIG ZICHTBAAR MAKEN (Math.min)
+    // FOTO WORDT WEER VOLLEDIG IN BEELD GEBRACHT (Math.min)
     const scale = Math.min(scaleX, scaleY); 
     
     const iw = meta.w * scale;
@@ -1010,13 +1010,11 @@ document.getElementById('btn-remove-photo').addEventListener('click', () => {
     fitImageToStage(null); clearLayer();
     curName.textContent = '–'; thumbsEl.innerHTML = '';
     updateUndoRedo(); updateBottomBar();
-    saveToLocalStorage();
     return;
   }
   if(currentIndex >= imageFiles.length) currentIndex = imageFiles.length-1;
   currentId = imageFiles[currentIndex].id;
   loadImageAt(currentIndex);
-  saveToLocalStorage();
 });
 
 document.getElementById('btn-clear-queue').addEventListener('click', () => {
@@ -1026,7 +1024,6 @@ document.getElementById('btn-clear-queue').addEventListener('click', () => {
   curName.textContent = '–'; thumbsEl.innerHTML = '';
   const fi = document.getElementById('file-input'); if(fi) fi.value = '';
   updateUndoRedo(); updateBottomBar();
-  saveToLocalStorage();
 });
 
 document.getElementById('btn-rename-photo').addEventListener('click', () => {
@@ -1039,7 +1036,6 @@ document.getElementById('btn-rename-photo').addEventListener('click', () => {
   cur.name = safe + '.png';
   curName.textContent = cur.name;
   renderThumbs();
-  saveToLocalStorage();
 });
 
 document.getElementById('bb-prev').addEventListener('click', () => switchImage(-1));
@@ -1128,7 +1124,6 @@ function commitHistory(){
   lastCommitJson = json;
   lastCommitTime = now;
   updateUndoRedo();
-  saveToLocalStorage();
 }
 function undo(){
   if(!currentId) return;
@@ -1239,13 +1234,20 @@ async function exportCroppedURL(){
   drawLayer.batchDraw();
   return url;
 }
+
+// VEILIGE DOWNLOAD VOOR IPAD PWA
 function downloadBlob(name, blob){
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(blob);
+  a.href = url;
   a.download = name;
+  a.style.display = 'none';
   document.body.appendChild(a);
   a.click();
-  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 5000);
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 3000);
 }
 
 document.getElementById('btn-export').addEventListener('click', async () => {
@@ -1423,7 +1425,6 @@ projInput.addEventListener('change', async e => {
     else { fitImageToStage(null); curName.textContent = '–'; updateUndoRedo(); updateBottomBar(); }
     e.target.value = '';
     logErr('OK', 'Project geladen');
-    saveToLocalStorage();
   }catch(err){
     logErr('Laden', String(err && err.message || err));
     try{ e.target.value = ''; }catch(_){}
@@ -1466,55 +1467,7 @@ if(window.ResizeObserver){
   window.addEventListener('orientationchange', () => setTimeout(handleResize, 300));
 }
 
-// AUTOMATISCHE OPSLAG IN LOCALSTORAGE
-function saveToLocalStorage() {
-  try {
-    const data = {
-      imageFiles: imageFiles,
-      scenes: scenes,
-      currentIndex: currentIndex
-    };
-    localStorage.setItem('tekenapp_autosave', JSON.stringify(data));
-  } catch(e) {
-    console.warn('Opslaan mislukt (mogelijk te veel foto\'s voor browser opslag)', e);
-  }
-}
-
-function loadFromLocalStorage() {
-  try {
-    const raw = localStorage.getItem('tekenapp_autosave');
-    if(!raw) return false;
-    const data = JSON.parse(raw);
-    if(data && data.imageFiles && data.imageFiles.length) {
-      imageFiles = data.imageFiles;
-      for(const k in scenes) delete scenes[k];
-      Object.assign(scenes, data.scenes || {});
-      currentIndex = data.currentIndex || 0;
-      currentId = imageFiles[currentIndex] ? imageFiles[currentIndex].id : null;
-      
-      // Zorg dat history bestaat voor elke foto
-      imageFiles.forEach(it => {
-        if(!history[it.id]) history[it.id] = { past:[scenes[it.id] || EMPTY_JSON], future:[] };
-      });
-
-      renderThumbs();
-      loadImageAt(currentIndex);
-      return true;
-    }
-  } catch(e) {
-    console.error('Laden mislukt', e);
-  }
-  return false;
-}
-
-// Start de app
-requestAnimationFrame(() => {
-  sizeToWrapper();
-  if(!loadFromLocalStorage()) {
-    // Als er niks is opgeslagen, begin met leeg scherm
-  }
-});
-
+requestAnimationFrame(() => sizeToWrapper());
 window.addEventListener('load', () => setTimeout(sizeToWrapper, 100));
 
 document.addEventListener('gesturestart', e => e.preventDefault());
@@ -1526,7 +1479,7 @@ document.addEventListener('touchend', e => {
 }, { passive:false });
 
 updateBottomBar();
-console.log('Tekenapp Fiber v23');
+console.log('Tekenapp Fiber v25');
 })();
 </script>
 
