@@ -162,8 +162,8 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
     background: #ffffff !important;
   }
 
-  /* Ruimte voor de drie iPad-vensterknoppen.
-     Niet terugzetten naar 8px: dat veroorzaakte de overlap. */
+  /* Ruimte voor de drie iPad-vensterknoppen. 
+     Verhoogd naar 60px om er zeker onder te vallen. */
   body > .toolbar {
     position: absolute !important;
     top: 0 !important;
@@ -174,7 +174,7 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
     height: auto !important;
 
     margin: 0 !important;
-    padding-top: max(40px, env(safe-area-inset-top, 0px)) !important;
+    padding-top: max(60px, env(safe-area-inset-top, 0px)) !important;
     padding-bottom: 4px !important;
 
     background: #ffffff !important;
@@ -1594,7 +1594,7 @@ document.addEventListener('touchend', e => {
 }, { passive:false });
 
 updateBottomBar();
-console.log('Tekenapp Fiber v28');
+console.log('Tekenapp Fiber v29');
 })();
 </script>
 
