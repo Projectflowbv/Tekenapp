@@ -9,59 +9,10 @@
 <style>
 :root{--brand:#C00000;--brand-dark:#8A0000;--bg:#f1f3f5;--panel:#fff;--line:#e2e5ea;--text:#1c2024;--accent:#0B4EA2}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-
-html{
-  margin:0;
-  padding:0;
-  width:100%;
-  height:100%;
-  height:100dvh;
-  overflow:hidden;
-  background:var(--bg);
-  overscroll-behavior:none;
-}
-
-body{
-  margin:0;
-  padding:0;
-  width:100%;
-  height:100%;
-  height:100dvh;
-  min-height:100dvh;
-  overflow:hidden;
-  position:fixed;
-  inset:0;
-
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-  color:var(--text);
-
-  display:grid;
-  grid-template-rows:auto minmax(0,1fr) auto;
-  background:var(--bg);
-}
-
-@supports not (height:100dvh){
-  html,
-  body{
-    height:var(--app-height, 100vh);
-    min-height:var(--app-height, 100vh);
-  }
-}
-
+html, body { margin:0; padding:0; height:100%; overflow:hidden; background:#fff; }
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--text)}
 button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-family:inherit}
 
-/* Toolbar */
-.toolbar{
-  position:relative;
-  z-index:100;
-  min-width:0;
-  background:#fff;
-  border-bottom:1px solid var(--line);
-
-  /* Werkbalk direct onder de drie iPad-vensterknoppen */
-  padding-top:max(8px, env(safe-area-inset-top));
-  padding-bottom:4px;
-}
 .tbar-row{display:flex;gap:6px;align-items:center;padding:4px 8px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;white-space:nowrap;scrollbar-width:none}
 .tbar-row::-webkit-scrollbar{display:none}
 .tbar-sep{width:1px;height:24px;background:var(--line);flex-shrink:0;margin:0 2px}
@@ -99,15 +50,6 @@ button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-
 .yt-btn .yt-txt{font-size:11px;font-weight:800;color:#8A6A00;line-height:1}
 .yt-btn .yt-lbl{font-size:8px;color:#666;line-height:1;letter-spacing:.2px}
 
-/* Main */
-#main{
-  min-width:0;
-  min-height:0;
-  height:100%;
-  display:grid;
-  grid-template-columns:82px minmax(0,1fr);
-  overflow:hidden;
-}
 #symbol-bar{background:#fff;border-right:1px solid var(--line);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:4px 3px;display:flex;flex-direction:column;gap:4px}
 #symbol-bar::-webkit-scrollbar{width:0}
 .sym-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:5px 2px;border:2px solid var(--line);background:#fff;border-radius:8px;cursor:pointer;min-height:58px;flex-shrink:0}
@@ -120,25 +62,11 @@ button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-
 .sym-btn.floor-btn.active{background:#FFF3C4;border-color:#B58500}
 .sym-btn.floor-btn svg{width:24px;height:24px}
 
-#canvas-wrapper{
-  min-width:0;
-  min-height:0;
-  width:100%;
-  height:100%;
-  overflow:auto;
-  background:#e9ecef;
-  position:relative;
-  -webkit-overflow-scrolling:touch;
-  user-select:none;
-  -webkit-user-select:none;
-  touch-action:pan-x pan-y;
-}
+#canvas-wrapper{overflow:auto;background:#e9ecef;position:relative;-webkit-overflow-scrolling:touch;user-select:none;-webkit-user-select:none;touch-action:pan-x pan-y}
 #canvas-wrapper.drawing{touch-action:none;overflow:hidden}
 #stage{display:block;user-select:none;-webkit-user-select:none}
 
 @media (orientation: landscape) and (min-width: 900px){
-  #main{grid-template-columns:180px 1fr}
-  #symbol-bar{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:6px;align-content:start}
   .sym-btn{min-height:64px;padding:6px 3px}
   .sym-btn svg{width:36px;height:36px}
   .sym-btn .lbl{font-size:9px}
@@ -151,50 +79,13 @@ button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-
   .yt-btn{min-width:74px}
 }
 @media (orientation: landscape) and (min-width: 1200px){
-  #main{grid-template-columns:220px 1fr}
   .ltype-btn{min-width:86px}
   .ltype-btn .swatch{width:72px}
   .ltype-wrap{width:86px}
   .yt-btn{min-width:86px}
 }
 
-/* Bottom bar */
-.bottom-bar{
-  position:relative;
-  z-index:1000;
-
-  width:100%;
-  min-width:0;
-  min-height:56px;
-
-  display:flex;
-  gap:6px;
-  align-items:center;
-
-  margin:0;
-  padding:6px 10px;
-  padding-bottom:max(6px, env(safe-area-inset-bottom));
-
-  background:#fff;
-  border-top:1px solid var(--line);
-}
-.bb-btn{
-  border:1px solid var(--line);
-  background:#fff;
-  border-radius:8px;
-  padding:0 12px;
-  height:44px;
-  min-width:50px;
-  font-size:16px;
-  font-weight:700;
-  cursor:pointer;
-  color:#333;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
-  flex-shrink:0;
-}
+.bb-btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:0 12px;height:44px;min-width:50px;font-size:16px;font-weight:700;cursor:pointer;color:#333;display:inline-flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0}
 .bb-btn:active{background:#f1f3f5}
 .bb-btn:disabled{opacity:.35}
 .bb-btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
@@ -203,7 +94,6 @@ button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-
 .bb-btn .ico{font-size:18px;line-height:1}
 .bb-info{font-size:13px;color:#666;padding:0 10px;font-weight:600;margin-left:auto;white-space:nowrap}
 
-/* Drawers / Panels */
 .panel{position:fixed;top:0;bottom:0;width:min(90vw,380px);z-index:2000;background:#fff;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.3);transition:transform .25s ease;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
 .panel-left{left:0;transform:translateX(-105%)}
 .panel-right{right:0;transform:translateX(105%)}
@@ -237,6 +127,151 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
 #mini-error-console{position:fixed;right:8px;bottom:80px;max-width:min(42ch,80vw);max-height:30vh;overflow:auto;font:11px/1.35 ui-monospace,Menlo,monospace;background:#111;color:#f66;padding:8px 10px;border-radius:10px;z-index:999999;white-space:pre-wrap;pointer-events:none;opacity:0;transition:opacity .3s;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 #mini-error-console.show{opacity:1}
 #mini-error-console b{color:#fff}
+</style>
+
+<!-- iPad Split View: gerichte schermindeling -->
+<style id="ipad-layout-correction">
+  html {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    background: #ffffff !important;
+  }
+
+  body {
+    position: fixed !important;
+    inset: auto !important;
+
+    top: var(--fiber-viewport-top, 0px) !important;
+    left: var(--fiber-viewport-left, 0px) !important;
+
+    width: var(--fiber-viewport-width, 100%) !important;
+    height: var(--fiber-viewport-height, 100%) !important;
+
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: none !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+
+    display: block !important;
+    background: #ffffff !important;
+  }
+
+  /* Ruimte voor de drie iPad-vensterknoppen.
+     Niet terugzetten naar 8px: dat veroorzaakte de overlap. */
+  body > .toolbar {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+
+    width: 100% !important;
+    height: auto !important;
+
+    margin: 0 !important;
+    padding-top: max(40px, env(safe-area-inset-top, 0px)) !important;
+    padding-bottom: 4px !important;
+
+    background: #ffffff !important;
+    z-index: 100 !important;
+  }
+
+  /* De beschikbare ruimte tussen beide werkbalken. */
+  #main {
+    position: absolute !important;
+
+    top: var(--fiber-toolbar-height, 136px) !important;
+    bottom: var(--fiber-bottom-height, 52px) !important;
+    left: 0 !important;
+    right: 0 !important;
+
+    width: auto !important;
+    height: auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    display: grid !important;
+    grid-template-columns: 82px minmax(0, 1fr);
+    overflow: hidden !important;
+  }
+
+  #symbol-bar {
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  #canvas-wrapper {
+    min-width: 0 !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Geen safe-area-padding onder de knoppen:
+     die voegde in de vorige versie juist een lege strook toe. */
+  body > .bottom-bar {
+    position: absolute !important;
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+
+    width: 100% !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    max-height: 52px !important;
+
+    margin: 0 !important;
+    padding: 4px 10px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+
+    background: #ffffff !important;
+    border-top: 1px solid var(--line, #e2e5ea) !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+
+    z-index: 1000 !important;
+  }
+
+  .bottom-bar .bb-btn {
+    height: 44px !important;
+    min-height: 44px !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .bottom-bar .bb-info {
+    flex-shrink: 0 !important;
+  }
+
+  @media (orientation: landscape) and (min-width: 900px) {
+    #main {
+      grid-template-columns: 180px minmax(0, 1fr);
+    }
+  }
+
+  @media (orientation: landscape) and (min-width: 1200px) {
+    #main {
+      grid-template-columns: 220px minmax(0, 1fr);
+    }
+  }
 </style>
 </head>
 <body>
@@ -1535,74 +1570,20 @@ if(window.showDirectoryPicker){
   if(hint) hint.style.display = 'block';
 }
 
-/* ============================================================
-   NIEUWE VIEWPORT LOGICA
-   ============================================================ */
-function syncViewportHeight(){
-  const viewportHeight = window.visualViewport
-    ? window.visualViewport.height
-    : window.innerHeight;
-
-  document.documentElement.style.setProperty(
-    '--app-height',
-    Math.round(viewportHeight) + 'px'
-  );
-}
-
-let resizeFrame = 0;
-let resizeTimer = 0;
-
-function handleResize(){
-  cancelAnimationFrame(resizeFrame);
-  clearTimeout(resizeTimer);
-
-  resizeFrame = requestAnimationFrame(() => {
-    syncViewportHeight();
+// Zorg dat het canvas de nieuwe afmetingen herkent na layout-wijzigingen
+const observer = new ResizeObserver(() => {
+  if(typeof sizeToWrapper === 'function'){
     sizeToWrapper();
-
-    resizeTimer = setTimeout(() => {
-      const meta = imageFiles[currentIndex];
-
-      sizeToWrapper();
-
-      if(meta){
-        fitImageToStage(meta);
-      }else{
-        const wrap = document.getElementById('canvas-wrapper');
-        resizeStage(
-          Math.max(200, wrap.clientWidth),
-          Math.max(200, wrap.clientHeight)
-        );
-      }
-    }, 120);
-  });
-}
-
-if(window.ResizeObserver){
-  const ro = new ResizeObserver(handleResize);
-  ro.observe(document.getElementById('canvas-wrapper'));
-}
-
-if(window.visualViewport){
-  window.visualViewport.addEventListener('resize', handleResize);
-  window.visualViewport.addEventListener('scroll', handleResize);
-}
-
-window.addEventListener('pageshow', handleResize);
-window.addEventListener('orientationchange', () => {
-  setTimeout(handleResize, 250);
+    if(imageFiles[currentIndex]){
+      fitImageToStage(imageFiles[currentIndex]);
+    }
+  }
 });
+observer.observe(document.getElementById('canvas-wrapper'));
 
-syncViewportHeight();
-
-requestAnimationFrame(() => {
-  handleResize();
-});
-
-window.addEventListener('load', () => {
-  setTimeout(handleResize, 100);
-  setTimeout(handleResize, 400);
-});
+// Initiële sizing
+requestAnimationFrame(() => sizeToWrapper());
+window.addEventListener('load', () => setTimeout(sizeToWrapper, 100));
 
 document.addEventListener('gesturestart', e => e.preventDefault());
 let lastTouchEnd = 0;
@@ -1613,7 +1594,120 @@ document.addEventListener('touchend', e => {
 }, { passive:false });
 
 updateBottomBar();
-console.log('Tekenapp Fiber v27');
+console.log('Tekenapp Fiber v28');
+})();
+</script>
+
+<script>
+(function installFiberViewportCorrection() {
+  'use strict';
+
+  /* Voorkomt dubbele installatie als het blok tweemaal wordt geladen. */
+  if (window.__fiberViewportCorrectionInstalled) return;
+  window.__fiberViewportCorrectionInstalled = true;
+
+  const root = document.documentElement;
+  const toolbar = document.querySelector('body > .toolbar');
+  const bottomBar = document.querySelector('body > .bottom-bar');
+
+  if (!toolbar || !bottomBar) {
+    console.error('Schermcorrectie: werkbalken niet gevonden.');
+    return;
+  }
+
+  let frame = 0;
+  let settleTimer = 0;
+
+  function setPixels(name, value) {
+    const next = Math.round(value * 100) / 100 + 'px';
+
+    if (root.style.getPropertyValue(name) !== next) {
+      root.style.setProperty(name, next);
+    }
+  }
+
+  function updateLayout() {
+    frame = 0;
+
+    const viewport = window.visualViewport;
+
+    const width = viewport
+      ? viewport.width
+      : window.innerWidth;
+
+    const height = viewport
+      ? viewport.height
+      : window.innerHeight;
+
+    const top = viewport
+      ? viewport.offsetTop
+      : 0;
+
+    const left = viewport
+      ? viewport.offsetLeft
+      : 0;
+
+    if (width <= 0 || height <= 0) return;
+
+    setPixels('--fiber-viewport-width', width);
+    setPixels('--fiber-viewport-height', height);
+    setPixels('--fiber-viewport-top', top);
+    setPixels('--fiber-viewport-left', left);
+
+    /* Meet de werkelijke balkhoogtes nadat de viewport is ingesteld. */
+    setPixels(
+      '--fiber-toolbar-height',
+      toolbar.getBoundingClientRect().height
+    );
+
+    setPixels(
+      '--fiber-bottom-height',
+      bottomBar.getBoundingClientRect().height
+    );
+  }
+
+  function scheduleLayout() {
+    if (frame) return;
+    frame = window.requestAnimationFrame(updateLayout);
+  }
+
+  function updateAfterWindowChange() {
+    scheduleLayout();
+
+    window.clearTimeout(settleTimer);
+    settleTimer = window.setTimeout(scheduleLayout, 250);
+  }
+
+  window.addEventListener('resize', updateAfterWindowChange);
+  window.addEventListener('orientationchange', updateAfterWindowChange);
+  window.addEventListener('pageshow', updateAfterWindowChange);
+  window.addEventListener('load', updateAfterWindowChange);
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener(
+      'resize',
+      updateAfterWindowChange
+    );
+
+    window.visualViewport.addEventListener(
+      'scroll',
+      scheduleLayout
+    );
+  }
+
+  if (window.ResizeObserver) {
+    const observer = new ResizeObserver(scheduleLayout);
+    observer.observe(toolbar);
+    observer.observe(bottomBar);
+  }
+
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+      updateAfterWindowChange();
+    }
+  });
+
+  updateLayout();
 })();
 </script>
 
