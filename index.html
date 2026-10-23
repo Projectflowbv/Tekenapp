@@ -9,15 +9,15 @@
 <style>
 :root{--brand:#C00000;--brand-dark:#8A0000;--bg:#fff;--panel:#fff;--line:#e2e5ea;--text:#1c2024;--accent:#0B4EA2}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:none;position:fixed;width:100%}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;height:100dvh}
+html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:none;position:fixed;width:100%;background:#fff}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--text);display:flex;flex-direction:column}
 button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-family:inherit}
 
 /* Grijze ruimte bovenaan voor de Mac/iPad vensterknoppen */
 .spacer-top {
   height: 50px;
   flex-shrink: 0;
-  background: #f1f3f5; /* Iets donkerder grijs voor contrast met de witte balk */
+  background: #f1f3f5;
 }
 
 .toolbar{flex:0 0 auto;background:#fff;border-bottom:1px solid var(--line);padding-top:calc(4px + env(safe-area-inset-top));padding-bottom:4px}
@@ -97,7 +97,7 @@ button{touch-action:manipulation;user-select:none;-webkit-user-select:none;font-
   .yt-btn{min-width:86px}
 }
 
-/* Onderbalk vult nu de volledige onderkant, inclusief safe-area */
+/* Onderbalk zit nu strak op de bodem, geen grijze ruimte meer */
 .bottom-bar{
   flex:0 0 auto; display:flex; gap:6px; align-items:center;
   padding: 6px 10px;
@@ -906,6 +906,7 @@ async function handleFiles(files){
   }
   renderThumbs();
   loadImageAt(currentIndex);
+  saveToLocalStorage();
 }
 
 function renderThumbs(){
@@ -950,17 +951,17 @@ function fitImageToStage(meta){
     
     const scaleX = STAGE_W / meta.w;
     const scaleY = STAGE_H / meta.h;
-    // FOTO VULT HET HELE SCHERM (geen grijze randen)
-    const scale = Math.max(scaleX, scaleY); 
+    // FOTO WEER VOLLEDIG ZICHTBAAR MAKEN (Math.min)
+    const scale = Math.min(scaleX, scaleY); 
     
     const iw = meta.w * scale;
     const ih = meta.h * scale;
-    const sw = Math.ceil(iw);
-    const sh = Math.ceil(ih);
+    const sw = Math.max(STAGE_W, Math.ceil(iw));
+    const sh = Math.max(STAGE_H, Math.ceil(ih));
     resizeStage(sw, sh);
     
-    const ix = (sw - iw) / 2;
-    const iy = (sh - ih) / 2;
+    const ix = Math.max(0, (sw - iw) / 2);
+    const iy = Math.max(0, (sh - ih) / 2);
     
     bgImageNode.setAttrs({
       image: img, x: ix, y: iy, width: iw, height: ih,
@@ -1009,11 +1010,13 @@ document.getElementById('btn-remove-photo').addEventListener('click', () => {
     fitImageToStage(null); clearLayer();
     curName.textContent = '–'; thumbsEl.innerHTML = '';
     updateUndoRedo(); updateBottomBar();
+    saveToLocalStorage();
     return;
   }
   if(currentIndex >= imageFiles.length) currentIndex = imageFiles.length-1;
   currentId = imageFiles[currentIndex].id;
   loadImageAt(currentIndex);
+  saveToLocalStorage();
 });
 
 document.getElementById('btn-clear-queue').addEventListener('click', () => {
@@ -1023,6 +1026,7 @@ document.getElementById('btn-clear-queue').addEventListener('click', () => {
   curName.textContent = '–'; thumbsEl.innerHTML = '';
   const fi = document.getElementById('file-input'); if(fi) fi.value = '';
   updateUndoRedo(); updateBottomBar();
+  saveToLocalStorage();
 });
 
 document.getElementById('btn-rename-photo').addEventListener('click', () => {
@@ -1035,6 +1039,7 @@ document.getElementById('btn-rename-photo').addEventListener('click', () => {
   cur.name = safe + '.png';
   curName.textContent = cur.name;
   renderThumbs();
+  saveToLocalStorage();
 });
 
 document.getElementById('bb-prev').addEventListener('click', () => switchImage(-1));
@@ -1123,6 +1128,7 @@ function commitHistory(){
   lastCommitJson = json;
   lastCommitTime = now;
   updateUndoRedo();
+  saveToLocalStorage();
 }
 function undo(){
   if(!currentId) return;
@@ -1239,8 +1245,9 @@ function downloadBlob(name, blob){
   a.download = name;
   document.body.appendChild(a);
   a.click();
-  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 5000);
 }
+
 document.getElementById('btn-export').addEventListener('click', async () => {
   try{
     if(currentIndex < 0){ logErr('Export', 'Geen foto geladen'); return; }
@@ -1416,6 +1423,7 @@ projInput.addEventListener('change', async e => {
     else { fitImageToStage(null); curName.textContent = '–'; updateUndoRedo(); updateBottomBar(); }
     e.target.value = '';
     logErr('OK', 'Project geladen');
+    saveToLocalStorage();
   }catch(err){
     logErr('Laden', String(err && err.message || err));
     try{ e.target.value = ''; }catch(_){}
@@ -1457,7 +1465,56 @@ if(window.ResizeObserver){
   window.addEventListener('resize', handleResize);
   window.addEventListener('orientationchange', () => setTimeout(handleResize, 300));
 }
-requestAnimationFrame(() => sizeToWrapper());
+
+// AUTOMATISCHE OPSLAG IN LOCALSTORAGE
+function saveToLocalStorage() {
+  try {
+    const data = {
+      imageFiles: imageFiles,
+      scenes: scenes,
+      currentIndex: currentIndex
+    };
+    localStorage.setItem('tekenapp_autosave', JSON.stringify(data));
+  } catch(e) {
+    console.warn('Opslaan mislukt (mogelijk te veel foto\'s voor browser opslag)', e);
+  }
+}
+
+function loadFromLocalStorage() {
+  try {
+    const raw = localStorage.getItem('tekenapp_autosave');
+    if(!raw) return false;
+    const data = JSON.parse(raw);
+    if(data && data.imageFiles && data.imageFiles.length) {
+      imageFiles = data.imageFiles;
+      for(const k in scenes) delete scenes[k];
+      Object.assign(scenes, data.scenes || {});
+      currentIndex = data.currentIndex || 0;
+      currentId = imageFiles[currentIndex] ? imageFiles[currentIndex].id : null;
+      
+      // Zorg dat history bestaat voor elke foto
+      imageFiles.forEach(it => {
+        if(!history[it.id]) history[it.id] = { past:[scenes[it.id] || EMPTY_JSON], future:[] };
+      });
+
+      renderThumbs();
+      loadImageAt(currentIndex);
+      return true;
+    }
+  } catch(e) {
+    console.error('Laden mislukt', e);
+  }
+  return false;
+}
+
+// Start de app
+requestAnimationFrame(() => {
+  sizeToWrapper();
+  if(!loadFromLocalStorage()) {
+    // Als er niks is opgeslagen, begin met leeg scherm
+  }
+});
+
 window.addEventListener('load', () => setTimeout(sizeToWrapper, 100));
 
 document.addEventListener('gesturestart', e => e.preventDefault());
@@ -1469,7 +1526,7 @@ document.addEventListener('touchend', e => {
 }, { passive:false });
 
 updateBottomBar();
-console.log('Tekenapp Fiber v22');
+console.log('Tekenapp Fiber v23');
 })();
 </script>
 
