@@ -149,7 +149,7 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
 
 <style id="ipad-layout-correction">
   html { margin:0 !important; padding:0 !important; width:100% !important; height:100% !important; overflow:hidden !important; background:#ffffff !important; }
-  body { position:fixed !important; inset:auto !important; top:var(--fiber-viewport-top, 0px) !important; left:var(--fiber-viewport-left, 0px) !important; width:var(--fiber-viewport-width, 100% !important); height:var(--fiber-viewport-height, 100%) !important; min-width:0 !important; min-height:0 !important; max-height:none !important; margin:0 !important; padding:0 !important; overflow:hidden !important; display:block !important; background:#ffffff !important; }
+  body { position:fixed !important; inset:auto !important; top:var(--fiber-viewport-top, 0px) !important; left:var(--fiber-viewport-left, 0px) !important; width:var(--fiber-viewport-width, 100%) !important; height:var(--fiber-viewport-height, 100%) !important; min-width:0 !important; min-height:0 !important; max-height:none !important; margin:0 !important; padding:0 !important; overflow:hidden !important; display:block !important; background:#ffffff !important; }
   body > .toolbar { position:absolute !important; top:0 !important; left:0 !important; right:0 !important; width:100% !important; height:auto !important; margin:0 !important; padding-top:max(60px, env(safe-area-inset-top, 0px)) !important; padding-bottom:4px !important; background:#ffffff !important; z-index:100 !important; }
   #main { position:absolute !important; top:var(--fiber-toolbar-height, 136px) !important; bottom:var(--fiber-bottom-height, 52px) !important; left:0 !important; right:0 !important; width:auto !important; height:auto !important; min-width:0 !important; min-height:0 !important; margin:0 !important; padding:0 !important; display:grid !important; grid-template-columns:82px minmax(0, 1fr); overflow:hidden !important; }
   #symbol-bar { min-width:0 !important; min-height:0 !important; height:100% !important; overflow-x:hidden !important; overflow-y:auto !important; }
@@ -288,12 +288,11 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
 (function(){
 'use strict';
 
-// CRITICAL FIX FOR RETINA/IPAD SHARPNESS: dynamic pixelRatio
+// Retinal / iPad scherpte fix
 if(typeof Konva !== 'undefined'){
   Konva.pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
 }
 
-// Toast notification system
 function showToast(msg, type){
   const c = document.getElementById('toast-container');
   if(!c) return;
@@ -308,7 +307,6 @@ function showToast(msg, type){
   }, 3500);
 }
 
-// Custom Modal Dialog replacing prompt()
 function showPromptModal(title, initialValue){
   return new Promise(resolve => {
     const modal = document.getElementById('app-modal');
@@ -402,7 +400,7 @@ for(let f = -1; f <= 10; f++){
 
 const TEXT_COLOR = '#FFC000';
 
-let imageFiles = []; // Bevat objecten: { id, name, blob, url, w, h }
+let imageFiles = [];
 let currentIndex = -1;
 let currentId = null;
 const scenes = {};
@@ -1383,7 +1381,6 @@ async function saveBlobToDir(dirHandle, filename, blob){
   await w.close();
 }
 
-// Progress Overlay helpers
 const progressOverlay = document.getElementById('progress-overlay');
 const progressTitle = document.getElementById('progress-title');
 const progressSub = document.getElementById('progress-sub');
@@ -1440,7 +1437,6 @@ document.getElementById('btn-export-all').addEventListener('click', async () => 
   let jsonBlob = null, jsonName = null;
   if(includeJson){
     flushAndSave();
-    // Voor project.json converteren we blobs naar DataURLs zodat het project bestand zelfstandig deelbaar is
     const imgs = await Promise.all(imageFiles.map(async it => {
       const dataURL = await new Promise(res => {
         const reader = new FileReader();
