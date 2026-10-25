@@ -1,14 +1,24 @@
 <!DOCTYPE html>
+<!--
+  PROJECT FLOW - Tekenapp / Drawing app
+  (c) 2026 Project Flow. Alle rechten voorbehouden. All rights reserved.
+  Productnaam: "Project Flow". Gebruik uitsluitend deze naam en dit merk in de app, exports en bestanden.
+  Verwijder of wijzig deze vermelding niet.
+-->
 <html lang="nl"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Tekenapp Fiber Pro</title>
+<title>Project Flow</title>
+<meta name="application-name" content="Project Flow"><meta name="apple-mobile-web-app-title" content="Project Flow">
+<meta name="author" content="Project Flow"><meta name="copyright" content="(c) 2026 Project Flow">
+<meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#2BB3B3">
+<link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-180.png">
 <style>
 :root{--brand:#C00000;--dark:#8A0000;--line:#e2e5ea;--acc:#0B4EA2}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;overflow:hidden;background:#fff;overscroll-behavior:none}
-body{position:fixed;inset:0;height:100dvh;display:flex;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,Roboto,sans-serif;color:#1c2024}
+body{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,Roboto,sans-serif;color:#1c2024}
 button{font-family:inherit;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 .tb{flex:none;padding-top:max(52px,env(safe-area-inset-top));background:#fff;padding-bottom:4px}
 .row{display:flex;gap:6px;align-items:center;padding:4px 8px;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
@@ -41,7 +51,7 @@ button{font-family:inherit;touch-action:manipulation;user-select:none;-webkit-us
 .sb.fl.on{background:#FFF3C4;border-color:#B58500}
 .ss{grid-column:1/-1;height:1px;background:var(--line);margin:2px 0}
 #cw{flex:1;min-width:0;position:relative;overflow:hidden;background:#e9ecef;touch-action:none;user-select:none;-webkit-user-select:none}
-.bb{flex:none;display:flex;align-items:center;gap:6px;padding:6px 10px max(6px,env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line)}
+.bb{flex:none;display:flex;align-items:center;gap:6px;padding:6px 10px max(2px,calc(env(safe-area-inset-bottom) - 12px));background:#fff;border-top:1px solid var(--line)}
 .bt{border:1px solid var(--line);background:#fff;border-radius:8px;height:44px;min-width:50px;font-size:18px;font-weight:700;color:#333}
 .bt:disabled{opacity:.35}.bt.p{background:var(--brand);color:#fff;border-color:var(--brand)}.bt.a{background:var(--acc);color:#fff;font-size:22px}
 .bt.d{color:#C00000;border-color:#e8b5b5}
@@ -62,6 +72,7 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
 .th{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
 .tn{padding:7px 11px;border:1px solid var(--line);border-radius:6px;background:#fff;font-weight:600;min-width:38px;min-height:36px}
 .tn.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+#sp{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;pointer-events:none;z-index:1;padding:20px;text-align:center;color:#6b7280;font-size:14px}#sp img{width:min(70%,420px)}
 #toasts{position:fixed;right:16px;bottom:90px;display:flex;flex-direction:column;gap:8px;z-index:99999;pointer-events:none}
 .toast{background:#107c10;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .3s;max-width:300px}
 .toast.show{opacity:1}.toast.err{background:#a80000}
@@ -84,15 +95,14 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
   <button id="un" class="btn" disabled>Undo</button>
   <button id="re" class="btn" disabled>Redo</button>
   <button id="dl" class="ib" disabled title="Verwijder selectie">🗑</button>
-  <button id="kp" class="ib" title="Blijf plaatsen (vergrendel)">🔒</button>
-  <span id="md2" class="mode hidden"></span>
+   <span id="md2" class="mode hidden"></span>
   <div style="flex:1"></div>
   <span id="pen" class="pen">Pen</span>
   <button id="tr" class="ib">⚙</button>
  </div>
  <div class="row" id="lr"></div>
 </div>
-<div id="main"><aside id="sb"></aside><main id="cw"><div id="stage"></div></main></div>
+<div id="main"><aside id="sb"></aside><main id="cw"><div id="sp"><img src="logo.png" alt="Project Flow"><div>Tik op ＋ om foto's toe te voegen</div></div><div id="stage"></div></main></div>
 <div class="bb">
  <button id="ad" class="bt a">＋</button>
  <button id="pv" class="bt">←</button>
@@ -101,7 +111,7 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
  <button id="rm" class="bt d">🗑</button>
  <span id="info">– / –</span>
 </div>
-<aside id="pl" class="panel"><div class="ph"><span>Foto's</span><button class="x">✕</button></div><div class="pc">
+<aside id="pl" class="panel"><div class="ph"><span>Project Flow · Foto's</span><button class="x">✕</button></div><div class="pc">
  <div class="sm">Tik op ＋ om foto's toe te voegen. Werk wordt automatisch bewaard.</div>
  <div id="th" class="th"></div><hr>
  <label class="ck"><input type="checkbox" id="snap" checked> Snap naar lijnen</label>
@@ -113,7 +123,9 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
  <div class="r"><button id="rn" class="btn">Hernoem</button><button id="rp" class="btn">Verwijder foto</button></div>
  <div class="r"><button id="ca" class="btn">Verwijder alle foto's</button><button id="cl" class="btn">Tekening wissen</button></div><hr>
  <div class="r"><button id="e1" class="btn">Export huidige</button><button id="ea" class="btn">Export alles</button></div>
- <div class="sm">Export alles opent het deelmenu van de iPad (kies "Bewaar in Bestanden").</div>
+ <div class="sm">Export alles maakt één ZIP-bestand.</div><hr>
+ <div class="r"><button id="bk" class="btn">Back-up opslaan</button><button id="bl" class="btn">Back-up laden</button><input id="bf" class="hidden" type="file" accept=".json,application/json"></div>
+ <div class="sm">Een back-up bewaart foto's én bewerkbare tekeningen.</div><hr><div class="sm">Project Flow · © 2026 Project Flow</div>
 </div></aside>
 <div id="bd"></div>
 <input id="fi" class="hidden" type="file" accept="image/*" multiple>
@@ -142,7 +154,7 @@ const LT={
 const SYM={
  intrede_onder:{l:'Ondergronds',k:'tri',c:'#1E88E5'},intrede_boven:{l:'Bovengronds',k:'tri',c:'#7030A0'},
  verdeelpunt:{l:'Verdeelpunt',k:'dia',c:'#FFE600'},verdeeldoos:{l:'Verdeeldoos',k:'sq',c:'#00B050'},
- ftu:{l:'FTU',k:'sq',c:'#FFC000'},boorgat:{l:'Boorgat',k:'ci',c:'#E00000'},
+ ftu:{l:'FTU',k:'sq',c:'#FFC000'},boorgat:{l:'Boorgat',k:'ci',c:'#E00000',top:1},
  LU:{l:'LU',k:'lab',c:'#FFE600',t:'LU'},BU:{l:'BU',k:'lab',c:'#FFE600',t:'BU'}};
 const YT=[['WACHTBUIS','Wachtbuis aanwezig'],['GLEUF','gleuf']];
 
@@ -201,7 +213,7 @@ function begin(pos){
  const t=LT[lt],o={points:[pos.x,pos.y,pos.x,pos.y],stroke:t.c,strokeWidth:t.w,dash:t.d||[],lineCap:'butt',lineJoin:'miter',hitStrokeWidth:24,perfectDrawEnabled:false};
  if(tool==='line')shape=new Konva.Line(o);
  else{o.fill=t.c;o.pointerLength=o.pointerWidth=t.p;shape=new Konva.Arrow(o)}
- dl.add(shape);enable(shape)}
+ dl.add(shape);enable(shape);order()}
 function finish(){
  if(!shape)return;
  const p=shape.points();
@@ -242,7 +254,7 @@ function mkShape(d){
  return new Konva.Circle({...o,radius:10})}
 function place(p,x,y){
  if(p.txt){mkText(p.txt,x-30,y-14,22)}
- else{const g=new Konva.Group({x:x,y:y});g.add(mkShape(p));dl.add(g);enable(g);if(!keep)select(g);else dl.batchDraw();commit();save()}
+ else{const g=new Konva.Group({x:x,y:y,name:p.top?'top':''});g.add(mkShape(p));dl.add(g);enable(g);if(!keep)select(g);else dl.batchDraw();commit();save()}
  if(!keep){setTool('select')}}
 function ico(d){
  const s='<svg width="28" height="28" viewBox="0 0 30 30" fill="'+d.c+'" stroke="#000" stroke-width="1.5">';
@@ -269,7 +281,6 @@ function setTool(t){
  document.querySelectorAll('.sb,.yt').forEach(b=>b.classList.remove('on'));
  $('md2').classList.add('hidden');drags()}
 document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>setTool(b.dataset.t));
-$('kp').onclick=()=>{keep=!keep;$('kp').classList.toggle('on',keep);toast(keep?'Vergrendeld: blijft plaatsen':'Vergrendeling uit')};
 
 /* Lijntypes: gepaarde knoppen onder elkaar */
 function pickLine(k){lt=k;document.querySelectorAll('.lt').forEach(b=>b.classList.toggle('on',b.dataset.k===k));setTool(k==='ind_niet'?'arrow':'line');document.querySelectorAll('.lt').forEach(b=>b.classList.toggle('on',b.dataset.k===k))}
@@ -287,9 +298,10 @@ const snap=()=>JSON.stringify(kids().map(n=>{try{return n.toJSON()}catch(e){retu
 function apply(j){
  tf.remove();dl.destroyChildren();dl.add(tf);
  try{JSON.parse(j||E).forEach(o=>{const n=Konva.Node.create(o);dl.add(n);enable(n)})}catch(e){toast('Laadfout: '+e.message,'err')}
- select(null);drags();dl.batchDraw()}
+ select(null);drags();order();dl.batchDraw()}
+function order(){kids().filter(n=>n.hasName('top')).forEach(n=>n.moveToTop());tf.moveToTop();dl.batchDraw()}
 function commit(){
- const m=imgs[idx];if(!m)return;
+ order();const m=imgs[idx];if(!m)return;
  const h=hist[m.id]=hist[m.id]||{past:[E],future:[]},j=snap();
  if(h.past[h.past.length-1]===j)return;
  h.past.push(j);if(h.past.length>40)h.past.shift();h.future=[];scenes[m.id]=j;updUR()}
@@ -305,7 +317,7 @@ addEventListener('keydown',e=>{
  if((e.key==='Delete'||e.key==='Backspace')&&sel)del(sel)});
 
 /* Autosave in IndexedDB */
-const DB=()=>new Promise((res,rej)=>{const r=indexedDB.open('fiberpro',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const DB=()=>new Promise((res,rej)=>{const r=indexedDB.open('projectflow',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
 async function dbSet(v){try{const d=await DB();await new Promise(r=>{const t=d.transaction('s','readwrite');v===null?t.objectStore('s').delete('p'):t.objectStore('s').put(v,'p');t.oncomplete=t.onerror=r})}catch(e){}}
 async function dbGet(){try{const d=await DB();return await new Promise(r=>{const q=d.transaction('s').objectStore('s').get('p');q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)})}catch(e){return null}}
 let at=0;
@@ -334,7 +346,7 @@ function show(i){
 function thumbs(){
  const t=$('th');t.innerHTML='';
  imgs.forEach((m,i)=>{const b=document.createElement('button');b.className='tn'+(i===idx?' on':'');b.textContent=i+1;b.title=m.name;b.onclick=()=>go(i);t.appendChild(b)});
- const has=imgs.length>0;
+ const has=imgs.length>0;$('sp').classList.toggle('hidden',has);
  $('info').textContent=has?(idx+1)+' / '+imgs.length:'– / –';
  ['pv','nx','ex','rm'].forEach(k=>$(k).disabled=!has)}
 function go(i){if(!imgs.length||i===idx)return;select(null);save();show(i)}
@@ -366,6 +378,17 @@ function dlFile(f){const a=document.createElement('a');a.href=URL.createObjectUR
 async function deliver(files){
  try{if(navigator.canShare&&navigator.canShare({files:files})){await navigator.share({files:files});return}}catch(e){if(e&&e.name==='AbortError')return}
  for(const f of files){dlFile(f);await new Promise(r=>setTimeout(r,400))}}
+const crcT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc=b=>{let c=-1;for(let i=0;i<b.length;i++)c=crcT[(c^b[i])&255]^(c>>>8);return(c^-1)>>>0};
+async function zip(files){
+ const en=new TextEncoder(),P=[],C=[];let off=0,cs=0;
+ for(const f of files){
+  const d=new Uint8Array(await f.arrayBuffer()),n=en.encode(f.name),c=crc(d);
+  const l=new DataView(new ArrayBuffer(30));l.setUint32(0,0x04034b50,true);l.setUint16(4,20,true);l.setUint16(12,33,true);l.setUint32(14,c,true);l.setUint32(18,d.length,true);l.setUint32(22,d.length,true);l.setUint16(26,n.length,true);
+  const h=new DataView(new ArrayBuffer(46));h.setUint32(0,0x02014b50,true);h.setUint16(4,20,true);h.setUint16(6,20,true);h.setUint16(14,33,true);h.setUint32(16,c,true);h.setUint32(20,d.length,true);h.setUint32(24,d.length,true);h.setUint16(28,n.length,true);h.setUint32(42,off,true);
+  P.push(l,n,d);C.push(h,n);off+=30+n.length+d.length;cs+=46+n.length}
+ const e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);
+ return new Blob([...P,...C,e],{type:'application/zip'})}
 $('ex').onclick=$('e1').onclick=async()=>{
  if(idx<0)return;
  try{const b=await renderBlob();await deliver([new File([b],baseName(imgs[idx])+'-annotated.jpg',{type:'image/jpeg'})]);toast('Foto geëxporteerd')}catch(e){toast('Export fout: '+e.message,'err')}};
@@ -381,7 +404,7 @@ $('ea').onclick=async()=>{
   files.push(new File([b],n+'.jpg',{type:'image/jpeg'}))}}
  catch(e){toast('Export fout: '+e.message,'err')}
  pg.classList.add('hidden');show(keepI);
- if(files.length)await deliver(files)};
+ if(files.length){try{const z=await zip(files);await deliver([new File([z],'ProjectFlow-'+new Date().toISOString().slice(0,10)+'.zip',{type:'application/zip'})])}catch(e){toast('ZIP fout: '+e.message,'err')}}};
 
 /* Panelen */
 const B=document.body;
@@ -409,7 +432,21 @@ if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
  for(const m of imgs){scenes[m.id]=(d.scenes&&d.scenes[m.id])||E;hist[m.id]={past:[scenes[m.id]],future:[]}}
  show(Math.min(Math.max(d.idx||0,0),imgs.length-1));
  toast('Vorige sessie hersteld')})();
-console.log('Tekenapp Fiber Pro v31');
+/* Back-up */
+$('bk').onclick=async()=>{try{save();
+ const rd=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});
+ const o={app:'Project Flow',v:1,scenes:scenes,imgs:await Promise.all(imgs.map(async m=>({id:m.id,name:m.name,w:m.w,h:m.h,d:await rd(m.blob)})))};
+ await deliver([new File([JSON.stringify(o)],'ProjectFlow-backup-'+new Date().toISOString().slice(0,10)+'.json',{type:'application/json'})])}catch(e){toast('Back-up mislukt','err')}};
+$('bl').onclick=()=>$('bf').click();
+$('bf').onchange=async e=>{try{
+ const f=e.target.files[0];if(!f)return;const d=JSON.parse(await f.text());if(!d.imgs)throw 0;
+ const out=[];for(const it of d.imgs){const b=await (await fetch(it.d)).blob(),r=await loadImg(b);if(r)out.push({id:it.id,name:it.name,blob:b,w:it.w,h:it.h,img:r.img,url:r.url})}
+ imgs.forEach(m=>URL.revokeObjectURL(m.url));imgs=out;
+ for(const m of imgs){scenes[m.id]=(d.scenes||{})[m.id]||E;hist[m.id]={past:[scenes[m.id]],future:[]}}
+ show(0);autosave();toast('Back-up geladen')}catch(x){toast('Ongeldig bestand','err')}e.target.value=''};
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+window.PROJECT_FLOW={name:'Project Flow',copyright:'(c) 2026 Project Flow',version:'1.0'};
+console.log('%cProject Flow v1.0 - (c) 2026 Project Flow','font-weight:bold');
 })();
 </script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "57d14f6b495e4fc28f93415fcbd87ac8"}'></script>
