@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>Tekenapp Fiber</title>
+<title>Tekenapp Fiber Pro</title>
 <style>
 :root{--brand:#C00000;--brand-dark:#8A0000;--bg:#f1f3f5;--panel:#fff;--line:#e2e5ea;--text:#1c2024;--accent:#0B4EA2}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -124,154 +124,41 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
 .mode-indicator{padding:0 12px;height:40px;border-radius:8px;background:#FFF3CD;color:#856404;font-weight:600;font-size:12px;flex-shrink:0;border:1px solid #FFE69C;display:inline-flex;align-items:center}
 .hint{background:#EAF2FB;border:1px solid #b8d4f0;border-radius:8px;padding:10px;font-size:13px;color:#1a4a7a;margin-bottom:12px}
 
-#mini-error-console{position:fixed;right:8px;bottom:80px;max-width:min(42ch,80vw);max-height:30vh;overflow:auto;font:11px/1.35 ui-monospace,Menlo,monospace;background:#111;color:#f66;padding:8px 10px;border-radius:10px;z-index:999999;white-space:pre-wrap;pointer-events:none;opacity:0;transition:opacity .3s;box-shadow:0 6px 18px rgba(0,0,0,.35)}
-#mini-error-console.show{opacity:1}
-#mini-error-console b{color:#fff}
+/* Toast Notifications */
+#toast-container{position:fixed;right:16px;bottom:80px;display:flex;flex-direction:column;gap:8px;z-index:999999;pointer-events:none}
+.toast{background:#111;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;box-shadow:0 6px 18px rgba(0,0,0,.35);opacity:0;transform:translateY(10px);transition:all .3s ease;max-width:320px;pointer-events:auto}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{background:#107c10;color:#fff}
+.toast.error{background:#a80000;color:#fff}
+
+/* Modal Dialog */
+#app-modal{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px}
+#app-modal.hidden{display:none}
+.modal-box{background:#fff;width:100%;max-width:360px;border-radius:12px;padding:20px;box-shadow:0 12px 36px rgba(0,0,0,0.3);display:flex;flex-direction:column;gap:12px}
+.modal-title{font-size:16px;font-weight:700;color:var(--text)}
+.modal-input{padding:10px;border:1px solid var(--line);border-radius:8px;font-size:15px;width:100%}
+.modal-buttons{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
+
+/* Progress Bar */
+#progress-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100001;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#fff}
+#progress-overlay.hidden{display:none}
+.progress-card{background:#fff;color:var(--text);padding:24px;border-radius:12px;width:280px;text-align:center;box-shadow:0 12px 36px rgba(0,0,0,0.3)}
+.progress-bar-bg{width:100%;height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:12px}
+.progress-bar-fill{width:0%;height:100%;background:var(--accent);transition:width .2s ease}
 </style>
 
-<!-- iPad Split View: gerichte schermindeling -->
 <style id="ipad-layout-correction">
-  html {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    overflow: hidden !important;
-    background: #ffffff !important;
-  }
-
-  body {
-    position: fixed !important;
-    inset: auto !important;
-
-    top: var(--fiber-viewport-top, 0px) !important;
-    left: var(--fiber-viewport-left, 0px) !important;
-
-    width: var(--fiber-viewport-width, 100%) !important;
-    height: var(--fiber-viewport-height, 100%) !important;
-
-    min-width: 0 !important;
-    min-height: 0 !important;
-    max-height: none !important;
-
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-
-    display: block !important;
-    background: #ffffff !important;
-  }
-
-  /* Ruimte voor de drie iPad-vensterknoppen. 
-     Verhoogd naar 60px om er zeker onder te vallen. */
-  body > .toolbar {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-
-    width: 100% !important;
-    height: auto !important;
-
-    margin: 0 !important;
-    padding-top: max(60px, env(safe-area-inset-top, 0px)) !important;
-    padding-bottom: 4px !important;
-
-    background: #ffffff !important;
-    z-index: 100 !important;
-  }
-
-  /* De beschikbare ruimte tussen beide werkbalken. */
-  #main {
-    position: absolute !important;
-
-    top: var(--fiber-toolbar-height, 136px) !important;
-    bottom: var(--fiber-bottom-height, 52px) !important;
-    left: 0 !important;
-    right: 0 !important;
-
-    width: auto !important;
-    height: auto !important;
-    min-width: 0 !important;
-    min-height: 0 !important;
-
-    margin: 0 !important;
-    padding: 0 !important;
-
-    display: grid !important;
-    grid-template-columns: 82px minmax(0, 1fr);
-    overflow: hidden !important;
-  }
-
-  #symbol-bar {
-    min-width: 0 !important;
-    min-height: 0 !important;
-    height: 100% !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-  }
-
-  #canvas-wrapper {
-    min-width: 0 !important;
-    min-height: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  /* Geen safe-area-padding onder de knoppen:
-     die voegde in de vorige versie juist een lege strook toe. */
-  body > .bottom-bar {
-    position: absolute !important;
-    top: auto !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-
-    width: 100% !important;
-    height: 52px !important;
-    min-height: 52px !important;
-    max-height: 52px !important;
-
-    margin: 0 !important;
-    padding: 4px 10px !important;
-
-    display: flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-
-    background: #ffffff !important;
-    border-top: 1px solid var(--line, #e2e5ea) !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-
-    z-index: 1000 !important;
-  }
-
-  .bottom-bar .bb-btn {
-    height: 44px !important;
-    min-height: 44px !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-    flex-shrink: 0 !important;
-  }
-
-  .bottom-bar .bb-info {
-    flex-shrink: 0 !important;
-  }
-
-  @media (orientation: landscape) and (min-width: 900px) {
-    #main {
-      grid-template-columns: 180px minmax(0, 1fr);
-    }
-  }
-
-  @media (orientation: landscape) and (min-width: 1200px) {
-    #main {
-      grid-template-columns: 220px minmax(0, 1fr);
-    }
-  }
+  html { margin:0 !important; padding:0 !important; width:100% !important; height:100% !important; overflow:hidden !important; background:#ffffff !important; }
+  body { position:fixed !important; inset:auto !important; top:var(--fiber-viewport-top, 0px) !important; left:var(--fiber-viewport-left, 0px) !important; width:var(--fiber-viewport-width, 100% !important); height:var(--fiber-viewport-height, 100%) !important; min-width:0 !important; min-height:0 !important; max-height:none !important; margin:0 !important; padding:0 !important; overflow:hidden !important; display:block !important; background:#ffffff !important; }
+  body > .toolbar { position:absolute !important; top:0 !important; left:0 !important; right:0 !important; width:100% !important; height:auto !important; margin:0 !important; padding-top:max(60px, env(safe-area-inset-top, 0px)) !important; padding-bottom:4px !important; background:#ffffff !important; z-index:100 !important; }
+  #main { position:absolute !important; top:var(--fiber-toolbar-height, 136px) !important; bottom:var(--fiber-bottom-height, 52px) !important; left:0 !important; right:0 !important; width:auto !important; height:auto !important; min-width:0 !important; min-height:0 !important; margin:0 !important; padding:0 !important; display:grid !important; grid-template-columns:82px minmax(0, 1fr); overflow:hidden !important; }
+  #symbol-bar { min-width:0 !important; min-height:0 !important; height:100% !important; overflow-x:hidden !important; overflow-y:auto !important; }
+  #canvas-wrapper { min-width:0 !important; min-height:0 !important; width:100% !important; height:100% !important; margin:0 !important; padding:0 !important; }
+  body > .bottom-bar { position:absolute !important; top:auto !important; bottom:0 !important; left:0 !important; right:0 !important; width:100% !important; height:52px !important; min-height:52px !important; max-height:52px !important; margin:0 !important; padding:4px 10px !important; display:flex !important; align-items:center !important; gap:6px !important; background:#ffffff !important; border-top:1px solid var(--line, #e2e5ea) !important; overflow-x:auto !important; overflow-y:hidden !important; z-index:1000 !important; }
+  .bottom-bar .bb-btn { height:44px !important; min-height:44px !important; margin-top:0 !important; margin-bottom:0 !important; flex-shrink:0 !important; }
+  .bottom-bar .bb-info { flex-shrink:0 !important; }
+  @media (orientation: landscape) and (min-width: 900px){ #main { grid-template-columns:180px minmax(0, 1fr); } }
+  @media (orientation: landscape) and (min-width: 1200px){ #main { grid-template-columns:220px minmax(0, 1fr); } }
 </style>
 </head>
 <body>
@@ -372,7 +259,26 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
 
 <div id="backdrop"></div>
 <input id="file-input" class="hidden" type="file" accept="image/*" multiple>
-<div id="mini-error-console" aria-live="polite">OK</div>
+
+<!-- Toast & Modal & Progress elements -->
+<div id="toast-container"></div>
+<div id="app-modal" class="hidden">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">Invoer</div>
+    <input type="text" id="modal-input" class="modal-input" />
+    <div class="modal-buttons">
+      <button id="modal-cancel" class="btn" style="background:#666">Annuleren</button>
+      <button id="modal-ok" class="btn">OK</button>
+    </div>
+  </div>
+</div>
+<div id="progress-overlay" class="hidden">
+  <div class="progress-card">
+    <div id="progress-title" style="font-weight:700">Bezig met exporteren...</div>
+    <div id="progress-sub" class="small" style="margin-top:4px">0 / 0</div>
+    <div class="progress-bar-bg"><div id="progress-fill" class="progress-bar-fill"></div></div>
+  </div>
+</div>
 
 <script src="https://unpkg.com/konva@9/konva.min.js"></script>
 <script>window.Konva||document.write('<script src="https://cdn.jsdelivr.net/npm/konva@9/konva.min.js"><\/script>');</script>
@@ -382,8 +288,64 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
 (function(){
 'use strict';
 
+// CRITICAL FIX FOR RETINA/IPAD SHARPNESS: dynamic pixelRatio
 if(typeof Konva !== 'undefined'){
-  if(typeof Konva.pixelRatio !== 'undefined') Konva.pixelRatio = 1;
+  Konva.pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+}
+
+// Toast notification system
+function showToast(msg, type){
+  const c = document.getElementById('toast-container');
+  if(!c) return;
+  const t = document.createElement('div');
+  t.className = 'toast ' + (type || 'success');
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => {
+    t.classList.remove('show');
+    setTimeout(() => t.remove(), 300);
+  }, 3500);
+}
+
+// Custom Modal Dialog replacing prompt()
+function showPromptModal(title, initialValue){
+  return new Promise(resolve => {
+    const modal = document.getElementById('app-modal');
+    const titleEl = document.getElementById('modal-title');
+    const inputEl = document.getElementById('modal-input');
+    const okBtn = document.getElementById('modal-ok');
+    const cancelBtn = document.getElementById('modal-cancel');
+
+    titleEl.textContent = title;
+    inputEl.value = initialValue || '';
+    modal.classList.remove('hidden');
+    setTimeout(() => { inputEl.focus(); inputEl.select(); }, 50);
+
+    function cleanup(){
+      modal.classList.add('hidden');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      inputEl.removeEventListener('keydown', onKey);
+    }
+    function onOk(){
+      const val = inputEl.value;
+      cleanup();
+      resolve(val);
+    }
+    function onCancel(){
+      cleanup();
+      resolve(null);
+    }
+    function onKey(e){
+      if(e.key === 'Enter') onOk();
+      if(e.key === 'Escape') onCancel();
+    }
+
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    inputEl.addEventListener('keydown', onKey);
+  });
 }
 
 function toArr(x){
@@ -396,20 +358,6 @@ function toArr(x){
 function layerChildrenNoTransformer(){
   return toArr(drawLayer.getChildren()).filter(n => n !== transformer);
 }
-
-const errBox = document.getElementById('mini-error-console');
-let errTimer = null;
-function logErr(kind, msg){
-  if(!errBox) return;
-  const d = document.createElement('div');
-  d.innerHTML = '<b>'+kind+':</b> '+String(msg||'');
-  errBox.appendChild(d);
-  errBox.classList.add('show');
-  clearTimeout(errTimer);
-  errTimer = setTimeout(()=>errBox.classList.remove('show'), 4000);
-}
-window.addEventListener('error', e => logErr('Error', (e.message||'')+' @ '+((e.filename||'').split('/').pop())+':'+(e.lineno||'')));
-window.addEventListener('unhandledrejection', e => logErr('Promise', String(e.reason||'unknown')));
 
 if(typeof Konva === 'undefined'){
   document.body.innerHTML = '<div style="padding:40px;font-family:-apple-system,sans-serif"><h1>Konva niet geladen</h1><p>Controleer internet en herlaad.</p></div>';
@@ -454,7 +402,7 @@ for(let f = -1; f <= 10; f++){
 
 const TEXT_COLOR = '#FFC000';
 
-let imageFiles = [];
+let imageFiles = []; // Bevat objecten: { id, name, blob, url, w, h }
 let currentIndex = -1;
 let currentId = null;
 const scenes = {};
@@ -624,8 +572,8 @@ function beginShape(pos){
       fontSize:22, fill:TEXT_COLOR, fontStyle:'bold',
       draggable:true, padding:4, perfectDrawEnabled:false,
     });
-    t2.on('dblclick dbltap', () => {
-      const val = prompt('Wijzig tekst', t2.text());
+    t2.on('dblclick dbltap', async () => {
+      const val = await showPromptModal('Wijzig tekst', t2.text());
       if(val !== null){ t2.text(val); commitHistory(); saveScene(); }
       drawLayer.batchDraw();
     });
@@ -928,8 +876,8 @@ function placeSymbol(keyOrDef, x, y){
       padding: 4,
       perfectDrawEnabled: false,
     });
-    t.on('dblclick dbltap', () => {
-      const val = prompt('Wijzig tekst', t.text());
+    t.on('dblclick dbltap', async () => {
+      const val = await showPromptModal('Wijzig tekst', t.text());
       if(val !== null){ t.text(val); commitHistory(); saveScene(); }
       drawLayer.batchDraw();
     });
@@ -955,8 +903,8 @@ function placeSymbol(keyOrDef, x, y){
       draggable: false, perfectDrawEnabled: false,
       listening: true,
     });
-    t.on('dblclick dbltap', () => {
-      const val = prompt('Wijzig verdieping', t.text());
+    t.on('dblclick dbltap', async () => {
+      const val = await showPromptModal('Wijzig verdieping', t.text());
       if(val !== null){ t.text(val); commitHistory(); saveScene(); }
       drawLayer.batchDraw();
     });
@@ -999,15 +947,16 @@ async function handleFiles(files){
   files.sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' }));
 
   const items = await Promise.all(files.map(f => new Promise(res => {
-    const fr = new FileReader();
-    fr.onload = () => {
-      const im = new Image();
-      im.onload = () => res({ id:newId(), name:f.name, dataURL:fr.result, w:im.naturalWidth, h:im.naturalHeight });
-      im.onerror = () => res(null);
-      im.src = fr.result;
+    const im = new Image();
+    const url = URL.createObjectURL(f);
+    im.onload = () => {
+      res({ id:newId(), name:f.name, blob:f, url:url, w:im.naturalWidth, h:im.naturalHeight });
     };
-    fr.onerror = () => res(null);
-    fr.readAsDataURL(f);
+    im.onerror = () => {
+      URL.revokeObjectURL(url);
+      res(null);
+    };
+    im.src = url;
   })));
   const good = items.filter(Boolean);
   if(!good.length) return;
@@ -1090,8 +1039,9 @@ function fitImageToStage(meta){
     bgLayer.batchDraw();
     centerViewportOnBg();
   };
-  img.src = meta.dataURL;
+  img.src = meta.url;
 }
+
 function centerViewportOnBg(){
   const wrap = document.getElementById('canvas-wrapper');
   const cx = bgImageNode.x() + bgImageNode.width()/2;
@@ -1124,7 +1074,11 @@ document.getElementById('btn-next').addEventListener('click', () => switchImage(
 document.getElementById('btn-remove-photo').addEventListener('click', () => {
   if(currentIndex < 0) return;
   const removed = imageFiles.splice(currentIndex, 1)[0];
-  if(removed){ delete scenes[removed.id]; delete history[removed.id]; }
+  if(removed){
+    if(removed.url) URL.revokeObjectURL(removed.url);
+    delete scenes[removed.id];
+    delete history[removed.id];
+  }
   if(!imageFiles.length){
     currentIndex = -1; currentId = null;
     fitImageToStage(null); clearLayer();
@@ -1137,8 +1091,9 @@ document.getElementById('btn-remove-photo').addEventListener('click', () => {
   loadImageAt(currentIndex);
 });
 
-document.getElementById('btn-clear-queue').addEventListener('click', () => {
+document.getElementById('btn-clear-queue').addEventListener('click', async () => {
   if(!confirm("Ben je zeker dat je alle foto's wil wissen?")) return;
+  imageFiles.forEach(f => { if(f.url) URL.revokeObjectURL(f.url); });
   imageFiles = []; currentIndex = -1; currentId = null;
   fitImageToStage(null); clearLayer();
   curName.textContent = '–'; thumbsEl.innerHTML = '';
@@ -1146,11 +1101,11 @@ document.getElementById('btn-clear-queue').addEventListener('click', () => {
   updateUndoRedo(); updateBottomBar();
 });
 
-document.getElementById('btn-rename-photo').addEventListener('click', () => {
+document.getElementById('btn-rename-photo').addEventListener('click', async () => {
   if(currentIndex < 0) return;
   const cur = imageFiles[currentIndex];
   const base = cur.name ? cur.name.replace(/\.[^.]+$/, '') : 'beeld-'+(currentIndex+1);
-  const nieuw = prompt('Nieuwe bestandsnaam (zonder extensie):', base);
+  const nieuw = await showPromptModal('Nieuwe bestandsnaam (zonder extensie):', base);
   if(!nieuw) return;
   const safe = nieuw.replace(/[^\w\-\.\s]/g, '_');
   cur.name = safe + '.png';
@@ -1206,9 +1161,9 @@ function applyJSON(jsonStr){
             drawLayer.add(node);
             enableSelect(node);
           }
-        }catch(e){ logErr('Node', String(e && e.message || e)); }
+        }catch(e){ showToast('Node fout: ' + e.message, 'error'); }
       }
-    }catch(e){ logErr('JSON', String(e && e.message || e)); }
+    }catch(e){ showToast('JSON fout: ' + e.message, 'error'); }
   }
   drawLayer.add(transformer);
   drawLayer.batchDraw();
@@ -1238,7 +1193,7 @@ function commitHistory(){
   const now = Date.now();
   if(json === lastCommitJson && now - lastCommitTime < 300) return;
   h.past.push(json);
-  if(h.past.length > 80) h.past.shift();
+  if(h.past.length > 30) h.past.shift();
   h.future = [];
   scenes[currentId] = json;
   lastCommitJson = json;
@@ -1328,6 +1283,7 @@ async function compressToJpeg(dataURL, maxKB){
   } while(quality > 0.4);
   return blob;
 }
+
 async function exportCroppedURL(){
   for(let i=0; i<40; i++){
     try{
@@ -1338,7 +1294,7 @@ async function exportCroppedURL(){
   }
   const rect = bgImageNode.getClientRect({ skipShadow:true, skipStroke:true });
   if(!rect || !rect.width || !rect.height){
-    return stage.toDataURL({ mimeType:'image/png', pixelRatio:2 });
+    return stage.toDataURL({ mimeType:'image/png', pixelRatio: Math.min(window.devicePixelRatio || 1, 2) });
   }
   const im = bgImageNode.image && bgImageNode.image();
   const pr = (im && rect.width) ? (im.naturalWidth / rect.width) : 2;
@@ -1371,13 +1327,14 @@ function downloadBlob(name, blob){
 
 document.getElementById('btn-export').addEventListener('click', async () => {
   try{
-    if(currentIndex < 0){ logErr('Export', 'Geen foto geladen'); return; }
+    if(currentIndex < 0){ showToast('Geen foto geladen', 'error'); return; }
     const url = await exportCroppedURL();
     const blob = await compressToJpeg(url, 500);
     const base = (imageFiles[currentIndex] && imageFiles[currentIndex].name)
       ? imageFiles[currentIndex].name.replace(/\.[^.]+$/,'') : 'tekening';
     downloadBlob(base + '-annotated.jpg', blob);
-  }catch(e){ logErr('Export', String(e && e.message || e)); }
+    showToast('Foto succesvol geëxporteerd', 'success');
+  }catch(e){ showToast('Export fout: ' + e.message, 'error'); }
 });
 
 function SimpleZip(){ this.parts=[]; this.files=[]; this.size=0; }
@@ -1426,6 +1383,23 @@ async function saveBlobToDir(dirHandle, filename, blob){
   await w.close();
 }
 
+// Progress Overlay helpers
+const progressOverlay = document.getElementById('progress-overlay');
+const progressTitle = document.getElementById('progress-title');
+const progressSub = document.getElementById('progress-sub');
+const progressFill = document.getElementById('progress-fill');
+
+function showProgress(title, current, total){
+  progressOverlay.classList.remove('hidden');
+  progressTitle.textContent = title;
+  progressSub.textContent = current + ' / ' + total;
+  const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+  progressFill.style.width = pct + '%';
+}
+function hideProgress(){
+  progressOverlay.classList.add('hidden');
+}
+
 document.getElementById('btn-export-all').addEventListener('click', async () => {
   if(!imageFiles.length) return;
 
@@ -1437,38 +1411,51 @@ document.getElementById('btn-export-all').addEventListener('click', async () => 
     }catch(e){
       if(e && e.name === 'AbortError') return;
       dirHandle = null;
-      logErr('Map', 'Kon geen map openen, val terug op ZIP');
     }
   }
 
   const prevIndex = currentIndex;
   const includeJson = document.getElementById('includeProjectJson').checked;
   const outFiles = [];
+  const total = imageFiles.length;
 
-  for(let i=0; i<imageFiles.length; i++){
+  showProgress('Exporteren...', 0, total);
+
+  for(let i=0; i<total; i++){
     if(currentIndex !== i){
       if(currentIndex >= 0){ selectNode(null); flushAndSave(); }
       currentIndex = i; currentId = imageFiles[i].id;
       loadImageAt(i);
     }
-    await new Promise(r => setTimeout(r, 80));
+    await new Promise(r => setTimeout(r, 60));
     try{
       const url = await exportCroppedURL();
       const blob = await compressToJpeg(url, 500);
       const base = (imageFiles[i].name || ('beeld-'+(i+1))).replace(/\.[^.]+$/,'');
       outFiles.push({ name: base + '.jpg', blob: blob });
-    }catch(e){ logErr('Export '+i, String(e && e.message || e)); }
+    }catch(e){ showToast('Export fout bij foto ' + (i+1), 'error'); }
+    showProgress('Exporteren...', i + 1, total);
   }
 
   let jsonBlob = null, jsonName = null;
   if(includeJson){
     flushAndSave();
-    const imgs = imageFiles.map(it => ({ id:it.id, name:it.name, dataURL:it.dataURL, w:it.w, h:it.h }));
+    // Voor project.json converteren we blobs naar DataURLs zodat het project bestand zelfstandig deelbaar is
+    const imgs = await Promise.all(imageFiles.map(async it => {
+      const dataURL = await new Promise(res => {
+        const reader = new FileReader();
+        reader.onload = () => res(reader.result);
+        reader.readAsDataURL(it.blob);
+      });
+      return { id:it.id, name:it.name, dataURL:dataURL, w:it.w, h:it.h };
+    }));
     const sc = {}; imgs.forEach(it => { sc[it.id] = scenes[it.id] || EMPTY_JSON; });
     const data = { version:5, projectName:(document.getElementById('projectName').value||'').trim(), images:imgs, scenes:sc };
     jsonBlob = new Blob([JSON.stringify(data)], { type:'application/json' });
     jsonName = 'project.json';
   }
+
+  hideProgress();
 
   if(dirHandle){
     try{
@@ -1478,9 +1465,9 @@ document.getElementById('btn-export-all').addEventListener('click', async () => 
       if(jsonBlob && jsonName){
         await saveBlobToDir(dirHandle, jsonName, jsonBlob);
       }
-      logErr('OK', outFiles.length + ' bestand(en) opgeslagen in gekozen map');
+      showToast(outFiles.length + ' bestanden opgeslagen in gekozen map', 'success');
     }catch(e){
-      logErr('Map opslaan', String(e && e.message || e));
+      showToast('Map opslaan mislukt, valt terug op ZIP', 'error');
       const zip = new SimpleZip();
       for(const f of outFiles){
         zip.add(f.name, new Uint8Array(await f.blob.arrayBuffer()), new Date());
@@ -1499,23 +1486,32 @@ document.getElementById('btn-export-all').addEventListener('click', async () => 
       zip.add(jsonName, new Uint8Array(await jsonBlob.arrayBuffer()), new Date());
     }
     downloadBlob('export.zip', zip.render());
-    logErr('OK', 'ZIP met ' + outFiles.length + ' bestand(en) gedownload');
+    showToast('ZIP gedownload met ' + outFiles.length + ' bestanden', 'success');
   }
 
   if(prevIndex >= 0) loadImageAt(prevIndex);
 });
 
-document.getElementById('btn-export-project').addEventListener('click', () => {
+document.getElementById('btn-export-project').addEventListener('click', async () => {
   try{
     flushAndSave();
-    const imgs = imageFiles.map(it => ({ id:it.id, name:it.name, dataURL:it.dataURL, w:it.w, h:it.h }));
+    const imgs = await Promise.all(imageFiles.map(async it => {
+      const dataURL = await new Promise(res => {
+        const reader = new FileReader();
+        reader.onload = () => res(reader.result);
+        reader.readAsDataURL(it.blob);
+      });
+      return { id:it.id, name:it.name, dataURL:dataURL, w:it.w, h:it.h };
+    }));
     const sc = {}; imgs.forEach(it => { sc[it.id] = scenes[it.id] || EMPTY_JSON; });
     const data = { version:5, projectName:(document.getElementById('projectName').value||'').trim(), images:imgs, scenes:sc };
     const base = (document.getElementById('projectName').value || 'project')
       .replace(/[\\/:*?"<>|]+/g,'_').replace(/\s+/g,' ').trim() || 'project';
     downloadBlob(base + '.json', new Blob([JSON.stringify(data, null, 2)], { type:'application/json' }));
-  }catch(e){ logErr('Opslaan', String(e && e.message || e)); }
+    showToast('Project succesvol opgeslagen', 'success');
+  }catch(e){ showToast('Opslaan mislukt: ' + e.message, 'error'); }
 });
+
 const projInput = document.getElementById('project-input');
 document.getElementById('btn-load-project').addEventListener('click', () => projInput.click());
 projInput.addEventListener('change', async e => {
@@ -1523,12 +1519,24 @@ projInput.addEventListener('change', async e => {
     const file = (e.target.files||[])[0];
     if(!file) return;
     const data = JSON.parse(await file.text());
-    if(!data || !Array.isArray(data.images)){ logErr('Project','Ongeldig'); e.target.value=''; return; }
+    if(!data || !Array.isArray(data.images)){
+      showToast('Ongeldig projectbestand', 'error');
+      e.target.value='';
+      return;
+    }
     selectNode(null); clearLayer();
-    const imgs = data.images.map((it, i) => ({
-      id: it.id || newId(), name: it.name || ('beeld-'+(i+1)+'.png'),
-      dataURL: it.dataURL || '', w: it.w || 0, h: it.h || 0,
+    imageFiles.forEach(f => { if(f.url) URL.revokeObjectURL(f.url); });
+
+    const imgs = await Promise.all(data.images.map(async (it, i) => {
+      const id = it.id || newId();
+      const name = it.name || ('beeld-'+(i+1)+'.png');
+      const dataURL = it.dataURL || '';
+      let blob = new Blob();
+      try { blob = dataURLToBlob(dataURL); } catch(_){}
+      const url = URL.createObjectURL(blob);
+      return { id, name, blob, url, w: it.w || 0, h: it.h || 0 };
     }));
+
     imgs.sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' }));
     imageFiles = imgs;
     for(const k in scenes) delete scenes[k];
@@ -1543,9 +1551,9 @@ projInput.addEventListener('change', async e => {
     if(imgs.length) loadImageAt(0);
     else { fitImageToStage(null); curName.textContent = '–'; updateUndoRedo(); updateBottomBar(); }
     e.target.value = '';
-    logErr('OK', 'Project geladen');
+    showToast('Project succesvol geladen', 'success');
   }catch(err){
-    logErr('Laden', String(err && err.message || err));
+    showToast('Laden mislukt: ' + err.message, 'error');
     try{ e.target.value = ''; }catch(_){}
   }
 });
@@ -1570,7 +1578,6 @@ if(window.showDirectoryPicker){
   if(hint) hint.style.display = 'block';
 }
 
-// Zorg dat het canvas de nieuwe afmetingen herkent na layout-wijzigingen
 const observer = new ResizeObserver(() => {
   if(typeof sizeToWrapper === 'function'){
     sizeToWrapper();
@@ -1581,7 +1588,6 @@ const observer = new ResizeObserver(() => {
 });
 observer.observe(document.getElementById('canvas-wrapper'));
 
-// Initiële sizing
 requestAnimationFrame(() => sizeToWrapper());
 window.addEventListener('load', () => setTimeout(sizeToWrapper, 100));
 
@@ -1594,15 +1600,13 @@ document.addEventListener('touchend', e => {
 }, { passive:false });
 
 updateBottomBar();
-console.log('Tekenapp Fiber v29');
+console.log('Tekenapp Fiber Pro v30');
 })();
 </script>
 
 <script>
 (function installFiberViewportCorrection() {
   'use strict';
-
-  /* Voorkomt dubbele installatie als het blok tweemaal wordt geladen. */
   if (window.__fiberViewportCorrectionInstalled) return;
   window.__fiberViewportCorrectionInstalled = true;
 
@@ -1610,17 +1614,13 @@ console.log('Tekenapp Fiber v29');
   const toolbar = document.querySelector('body > .toolbar');
   const bottomBar = document.querySelector('body > .bottom-bar');
 
-  if (!toolbar || !bottomBar) {
-    console.error('Schermcorrectie: werkbalken niet gevonden.');
-    return;
-  }
+  if (!toolbar || !bottomBar) return;
 
   let frame = 0;
   let settleTimer = 0;
 
   function setPixels(name, value) {
     const next = Math.round(value * 100) / 100 + 'px';
-
     if (root.style.getPropertyValue(name) !== next) {
       root.style.setProperty(name, next);
     }
@@ -1628,24 +1628,11 @@ console.log('Tekenapp Fiber v29');
 
   function updateLayout() {
     frame = 0;
-
     const viewport = window.visualViewport;
-
-    const width = viewport
-      ? viewport.width
-      : window.innerWidth;
-
-    const height = viewport
-      ? viewport.height
-      : window.innerHeight;
-
-    const top = viewport
-      ? viewport.offsetTop
-      : 0;
-
-    const left = viewport
-      ? viewport.offsetLeft
-      : 0;
+    const width = viewport ? viewport.width : window.innerWidth;
+    const height = viewport ? viewport.height : window.innerHeight;
+    const top = viewport ? viewport.offsetTop : 0;
+    const left = viewport ? viewport.offsetLeft : 0;
 
     if (width <= 0 || height <= 0) return;
 
@@ -1654,16 +1641,8 @@ console.log('Tekenapp Fiber v29');
     setPixels('--fiber-viewport-top', top);
     setPixels('--fiber-viewport-left', left);
 
-    /* Meet de werkelijke balkhoogtes nadat de viewport is ingesteld. */
-    setPixels(
-      '--fiber-toolbar-height',
-      toolbar.getBoundingClientRect().height
-    );
-
-    setPixels(
-      '--fiber-bottom-height',
-      bottomBar.getBoundingClientRect().height
-    );
+    setPixels('--fiber-toolbar-height', toolbar.getBoundingClientRect().height);
+    setPixels('--fiber-bottom-height', bottomBar.getBoundingClientRect().height);
   }
 
   function scheduleLayout() {
@@ -1673,7 +1652,6 @@ console.log('Tekenapp Fiber v29');
 
   function updateAfterWindowChange() {
     scheduleLayout();
-
     window.clearTimeout(settleTimer);
     settleTimer = window.setTimeout(scheduleLayout, 250);
   }
@@ -1684,15 +1662,8 @@ console.log('Tekenapp Fiber v29');
   window.addEventListener('load', updateAfterWindowChange);
 
   if (window.visualViewport) {
-    window.visualViewport.addEventListener(
-      'resize',
-      updateAfterWindowChange
-    );
-
-    window.visualViewport.addEventListener(
-      'scroll',
-      scheduleLayout
-    );
+    window.visualViewport.addEventListener('resize', updateAfterWindowChange);
+    window.visualViewport.addEventListener('scroll', scheduleLayout);
   }
 
   if (window.ResizeObserver) {
@@ -1702,9 +1673,7 @@ console.log('Tekenapp Fiber v29');
   }
 
   document.addEventListener('visibilitychange', function() {
-    if (!document.hidden) {
-      updateAfterWindowChange();
-    }
+    if (!document.hidden) updateAfterWindowChange();
   });
 
   updateLayout();
