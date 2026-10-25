@@ -13,6 +13,7 @@
 <meta name="application-name" content="Project Flow"><meta name="apple-mobile-web-app-title" content="Project Flow">
 <meta name="author" content="Project Flow"><meta name="copyright" content="(c) 2026 Project Flow">
 <meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#2BB3B3">
+<script>try{var t=localStorage.getItem("pf-theme")||"auto";if(t==="dark"||(t==="auto"&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dk")}catch(e){}</script>
 <link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-180.png">
 <style>
 :root{--brand:#C00000;--dark:#8A0000;--line:#e2e5ea;--acc:#0B4EA2}
@@ -72,7 +73,23 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
 .th{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
 .tn{padding:7px 11px;border:1px solid var(--line);border-radius:6px;background:#fff;font-weight:600;min-width:38px;min-height:36px}
 .tn.on{background:var(--acc);color:#fff;border-color:var(--acc)}
-#sp{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;pointer-events:none;z-index:1;padding:20px;text-align:center;color:#6b7280;font-size:14px}#sp img{width:min(70%,420px)}
+#sp{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;pointer-events:auto;cursor:pointer;z-index:1;padding:20px;text-align:center;color:#6b7280;font-size:14px}#sp img{width:min(70%,420px)}
+#upd{position:fixed;left:50%;transform:translateX(-50%);bottom:72px;z-index:99998;background:#2BB3B3;color:#fff;border:0;border-radius:22px;padding:12px 20px;font-weight:700;font-size:14px;box-shadow:0 4px 14px #0004}
+html.dk{--line:#2f353d;background:#14181d;color-scheme:dark}
+html.dk body,html.dk .tb,html.dk #sb,html.dk .bb,html.dk .panel{background:#14181d;color:#e8eaed}
+html.dk .ib,html.dk .bt:not(.a):not(.p),html.dk .lt,html.dk .sb,html.dk .tn,html.dk .pen:not(.on){background:#1e242b;color:#e8eaed}
+html.dk .bt.d{color:#ff8a8a;border-color:#6b3434}
+html.dk .sb.on,html.dk .lt.on{background:#12304f;border-color:#5aa2ee}
+html.dk .tn.on{background:#0B4EA2;color:#fff}
+html.dk .sb span,html.dk .lt b,html.dk .sm,html.dk #info,html.dk #sp{color:#9aa3ad}
+html.dk #cw{background:#0d1014}
+html.dk .mb,html.dk #pg div{background:#1e242b;color:#e8eaed}
+html.dk .mb input{background:#14181d;color:#e8eaed;border-color:#2f353d}
+html.dk .sb.fl,html.dk .yt{background:#3a3115;border-color:#6b5a1d;color:#FFC000}
+html.dk .sb.fl.on,html.dk .yt.on{background:#4a3f12;border-color:#FFC000}
+html.dk .btn.on{background:#14181d;color:#ff9a9a;border-color:#ff9a9a}
+html.dk .x{color:#e8eaed}
+html.dk #sp img{border-radius:18px}
 #toasts{position:fixed;right:16px;bottom:90px;display:flex;flex-direction:column;gap:8px;z-index:99999;pointer-events:none}
 .toast{background:#107c10;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .3s;max-width:300px}
 .toast.show{opacity:1}.toast.err{background:#a80000}
@@ -102,11 +119,12 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
  </div>
  <div class="row" id="lr"></div>
 </div>
-<div id="main"><aside id="sb"></aside><main id="cw"><div id="sp"><img src="logo.png" alt="Project Flow"><div>Tik op ＋ om foto's toe te voegen</div></div><div id="stage"></div></main></div>
+<div id="main"><aside id="sb"></aside><main id="cw"><div id="sp"><img src="logo.png" alt="Project Flow"><div>Tik om foto's toe te voegen</div></div><div id="stage"></div></main></div>
 <div class="bb">
  <button id="ad" class="bt a">＋</button>
  <button id="pv" class="bt">←</button>
  <button id="nx" class="bt">→</button>
+ <button id="zr" class="bt" title="Zoom herstellen">⤢</button>
  <button id="ex" class="bt p">📥</button>
  <button id="rm" class="bt d">🗑</button>
  <span id="info">– / –</span>
@@ -125,10 +143,14 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--brand)}
  <div class="r"><button id="e1" class="btn">Export huidige</button><button id="ea" class="btn">Export alles</button></div>
  <div class="sm">Export alles maakt één ZIP-bestand.</div><hr>
  <div class="r"><button id="bk" class="btn">Back-up opslaan</button><button id="bl" class="btn">Back-up laden</button><input id="bf" class="hidden" type="file" accept=".json,application/json"></div>
- <div class="sm">Een back-up bewaart foto's én bewerkbare tekeningen.</div><hr><div class="sm">Project Flow · © 2026 Project Flow</div>
+ <div class="sm">Een back-up bewaart foto's én bewerkbare tekeningen.</div><hr>
+ <div class="r"><strong>Weergave</strong></div>
+ <div class="r"><button class="btn" data-th="auto">Automatisch</button><button class="btn" data-th="light">Licht</button><button class="btn" data-th="dark">Donker</button></div>
+ <div class="sm">Automatisch volgt de instelling van je iPad.</div><hr><div class="sm">Project Flow · © 2026 Project Flow</div>
 </div></aside>
 <div id="bd"></div>
 <input id="fi" class="hidden" type="file" accept="image/*" multiple>
+<button id="upd" class="hidden">Nieuwe versie beschikbaar · tik om te vernieuwen</button>
 <div id="toasts"></div>
 <div id="md" class="hidden"><div class="mb"><b id="mt"></b><input id="mi"><div><button id="mc" class="btn" style="background:#666">Annuleren</button><button id="mo" class="btn">OK</button></div></div></div>
 <div id="pg" class="hidden"><div><b>Exporteren...</b><div id="ps" class="sm"></div><div id="pf"></div></div></div>
@@ -160,7 +182,7 @@ const YT=[['WACHTBUIS','Wachtbuis aanwezig'],['GLEUF','gleuf']];
 
 let imgs=[],idx=-1,tool='select',lt='publiek',pend=null,sel=null,shape=null,dirty=false,keep=false,lastN=null,lastT=0;
 const scenes={},hist={},E='[]';
-let W=800,H=600;
+let W=800,H=600,LW=1000,LH=750,base=1,zt=0;
 const stage=new Konva.Stage({container:'stage',width:W,height:H});
 const bgL=new Konva.Layer({listening:false}),dl=new Konva.Layer();
 stage.add(bgL,dl);
@@ -181,9 +203,7 @@ function scaled(img,w,h){
 function fit(){
  size();const m=imgs[idx];
  if(!m){bg.image(null);bgL.batchDraw();return}
- const s=Math.min(W/m.w,H/m.h),iw=m.w*s,ih=m.h*s;
- bg.setAttrs({x:(W-iw)/2,y:(H-ih)/2,width:iw,height:ih,image:scaled(m.img,iw,ih)});
- bgL.batchDraw()}
+ LH=Math.round(LW*m.h/m.w);bg.setAttrs({x:0,y:0,width:LW,height:LH});home()}
 
 /* Selectie */
 function select(n){sel=n;tf.nodes(n?[n]:[]);tf.visible(!!n);tf.moveToTop();dl.batchDraw();$('dl').disabled=!n}
@@ -223,14 +243,14 @@ let raf=0,pp=null;
 stage.on('pointerdown',e=>{
  const ty=e.evt.pointerType||'mouse',bgHit=e.target===stage||e.target.getLayer()===bgL;
  if($('po').checked&&ty==='touch'){if(bgHit)select(null);return}
- let pos=stage.getPointerPosition();if(!pos)return;
+ let pos=wp();if(!pos)return;
  if(pend){place(pend,pos.x,pos.y);return}
- if(tool==='line'||tool==='arrow'){select(null);pos=snapPt(pos,18)||pos;begin(pos);return}
+ if(tool==='line'||tool==='arrow'){select(null);pos=snapPt(pos,18/stage.scaleX())||pos;begin(pos);return}
  if(tool==='text'){select(null);addText(pos);return}
  if(bgHit)select(null)});
 stage.on('pointermove',()=>{
- if(!shape)return;let pos=stage.getPointerPosition();if(!pos)return;
- pp=snapPt(pos,18)||pos;
+ if(!shape)return;let pos=wp();if(!pos)return;
+ pp=snapPt(pos,18/stage.scaleX())||pos;
  if(!raf)raf=requestAnimationFrame(()=>{raf=0;if(pp&&shape){const a=shape.points();a[2]=pp.x;a[3]=pp.y;shape.points(a);dl.batchDraw()}})});
 addEventListener('pointerup',finish);addEventListener('pointercancel',finish);
 addEventListener('pointerdown',e=>{const p=$('pen');if(e.pointerType==='pen'){p.textContent='Pen';p.classList.add('on')}else if(e.pointerType==='touch'){p.textContent='Vinger';p.classList.remove('on')}},true);
@@ -321,7 +341,7 @@ const DB=()=>new Promise((res,rej)=>{const r=indexedDB.open('projectflow',1);r.o
 async function dbSet(v){try{const d=await DB();await new Promise(r=>{const t=d.transaction('s','readwrite');v===null?t.objectStore('s').delete('p'):t.objectStore('s').put(v,'p');t.oncomplete=t.onerror=r})}catch(e){}}
 async function dbGet(){try{const d=await DB();return await new Promise(r=>{const q=d.transaction('s').objectStore('s').get('p');q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)})}catch(e){return null}}
 let at=0;
-function autosave(){clearTimeout(at);at=setTimeout(()=>dbSet(imgs.length?{idx:idx,scenes:scenes,imgs:imgs.map(m=>({id:m.id,name:m.name,blob:m.blob,w:m.w,h:m.h}))}:null),1200)}
+function autosave(){clearTimeout(at);at=setTimeout(()=>dbSet(imgs.length?{cv:2,idx:idx,scenes:scenes,imgs:imgs.map(m=>({id:m.id,name:m.name,blob:m.blob,w:m.w,h:m.h}))}:null),1200)}
 function save(){const m=imgs[idx];if(m){scenes[m.id]=snap()}autosave()}
 
 /* Foto's */
@@ -352,7 +372,7 @@ function thumbs(){
 function go(i){if(!imgs.length||i===idx)return;select(null);save();show(i)}
 const step=d=>imgs.length&&go((idx+d+imgs.length)%imgs.length);
 $('pv').onclick=()=>step(-1);$('nx').onclick=()=>step(1);
-$('ad').onclick=()=>$('fi').click();
+$('ad').onclick=$('sp').onclick=()=>$('fi').click();
 $('fi').onchange=async e=>{await addFiles([...e.target.files]);e.target.value=''};
 async function removeCur(){
  const m=imgs[idx];if(!m)return;
@@ -366,9 +386,9 @@ $('rn').onclick=async()=>{const m=imgs[idx];if(!m)return;const v=await modal('Ni
 /* Export: origineel formaat, tot 1,5 MB */
 async function renderBlob(){
  const m=imgs[idx];select(null);
- const r={x:bg.x(),y:bg.y(),width:bg.width(),height:bg.height()};
+ const r={x:0,y:0,width:LW,height:LH};
  const pr=Math.min(m.w/r.width,4096/Math.max(r.width,r.height));
- bg.image(m.img);bgL.draw();
+ stage.scale({x:1,y:1});stage.position({x:0,y:0});stage.size({width:LW,height:LH});bg.image(m.img);bgL.draw();
  let q=.92,b;
  try{for(;;){const u=stage.toDataURL({mimeType:'image/jpeg',quality:q,x:r.x,y:r.y,width:r.width,height:r.height,pixelRatio:pr});b=await (await fetch(u)).blob();if(b.size<=1500*1024||q<=.6)break;q-=.08}}
  finally{fit()}
@@ -413,6 +433,33 @@ $('tr').onclick=()=>{const o=B.classList.contains('dr');B.classList.remove('dl',
 document.querySelectorAll('.x').forEach(b=>b.onclick=()=>B.classList.remove('dl','dr'));
 $('bd').onclick=()=>B.classList.remove('dl','dr');
 
+/* Zoom en verschuiven (2 vingers) */
+const wp=()=>{const p=stage.getPointerPosition();return p&&stage.getAbsoluteTransform().copy().invert().point(p)};
+function view(){const k=stage.scaleX();tf.anchorSize(18/k);tf.rotateAnchorOffset(48/k);tf.padding(4/k);tf.borderStrokeWidth(1.5/k);dl.batchDraw();bgL.batchDraw()}
+function fitImg(){const m=imgs[idx];if(!m)return;bg.image(scaled(m.img,LW*stage.scaleX(),LH*stage.scaleX()));bgL.batchDraw()}
+function home(){base=Math.min(W/LW,H/LH);stage.scale({x:base,y:base});stage.position({x:(W-LW*base)/2,y:(H-LH*base)/2});view();fitImg()}
+let g=null;const cw=$('cw');
+const T=e=>[...e.touches].filter(t=>t.touchType!=='stylus');
+const tp=e=>{const t=T(e),a=t[0],b=t[1];return{x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2,d:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)||1}};
+cw.addEventListener('touchstart',e=>{if(T(e).length===2){if(shape){shape.destroy();shape=null}const c=tp(e);g={x:c.x,y:c.y,d:c.d,k:stage.scaleX(),px:stage.x(),py:stage.y()};e.preventDefault()}},{passive:false});
+cw.addEventListener('touchmove',e=>{
+ if(!g||T(e).length!==2)return;e.preventDefault();
+ const c=tp(e),r=cw.getBoundingClientRect(),k=Math.min(Math.max(g.k*c.d/g.d,base*.7),base*10);
+ const wx=(g.x-r.left-g.px)/g.k,wy=(g.y-r.top-g.py)/g.k;
+ stage.scale({x:k,y:k});stage.position({x:c.x-r.left-wx*k,y:c.y-r.top-wy*k});view()},{passive:false});
+cw.addEventListener('touchend',e=>{if(g&&T(e).length<2){g=null;clearTimeout(zt);zt=setTimeout(fitImg,250)}});
+$('zr').onclick=home;
+
+/* Weergave: automatisch / licht / donker */
+const mq=matchMedia('(prefers-color-scheme: dark)');let th='auto';
+try{th=localStorage.getItem('pf-theme')||'auto'}catch(e){}
+function applyTheme(){const d=th==='dark'||(th==='auto'&&mq.matches);document.documentElement.classList.toggle('dk',d);
+ document.querySelector('meta[name=theme-color]').content=d?'#14181d':'#2BB3B3';
+ document.querySelectorAll('[data-th]').forEach(b=>b.classList.toggle('on',b.dataset.th===th))}
+document.querySelectorAll('[data-th]').forEach(b=>b.onclick=()=>{th=b.dataset.th;try{localStorage.setItem('pf-theme',th)}catch(e){}applyTheme()});
+if(mq.addEventListener)mq.addEventListener('change',applyTheme);
+applyTheme();
+
 /* Layout */
 let lw=0,lh=0;
 new ResizeObserver(()=>{const w=$('cw');if(w.clientWidth===lw&&w.clientHeight===lh)return;lw=w.clientWidth;lh=w.clientHeight;fit()}).observe($('cw'));
@@ -429,24 +476,31 @@ if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
  for(const it of d.imgs){const r=await loadImg(it.blob);if(r)out.push({id:it.id,name:it.name,blob:it.blob,w:it.w,h:it.h,img:r.img,url:r.url})}
  if(!out.length)return;
  imgs=out;
- for(const m of imgs){scenes[m.id]=(d.scenes&&d.scenes[m.id])||E;hist[m.id]={past:[scenes[m.id]],future:[]}}
+ for(const m of imgs){scenes[m.id]=d.cv===2?((d.scenes&&d.scenes[m.id])||E):E;hist[m.id]={past:[scenes[m.id]],future:[]}}
  show(Math.min(Math.max(d.idx||0,0),imgs.length-1));
- toast('Vorige sessie hersteld')})();
+ toast(d.cv===2?'Vorige sessie hersteld':"Update: oude tekeningen zijn niet compatibel, foto's zijn behouden",d.cv===2?'':'err')})();
 /* Back-up */
 $('bk').onclick=async()=>{try{save();
  const rd=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});
- const o={app:'Project Flow',v:1,scenes:scenes,imgs:await Promise.all(imgs.map(async m=>({id:m.id,name:m.name,w:m.w,h:m.h,d:await rd(m.blob)})))};
+ const o={app:'Project Flow',v:1,cv:2,scenes:scenes,imgs:await Promise.all(imgs.map(async m=>({id:m.id,name:m.name,w:m.w,h:m.h,d:await rd(m.blob)})))};
  await deliver([new File([JSON.stringify(o)],'ProjectFlow-backup-'+new Date().toISOString().slice(0,10)+'.json',{type:'application/json'})])}catch(e){toast('Back-up mislukt','err')}};
 $('bl').onclick=()=>$('bf').click();
 $('bf').onchange=async e=>{try{
  const f=e.target.files[0];if(!f)return;const d=JSON.parse(await f.text());if(!d.imgs)throw 0;
  const out=[];for(const it of d.imgs){const b=await (await fetch(it.d)).blob(),r=await loadImg(b);if(r)out.push({id:it.id,name:it.name,blob:b,w:it.w,h:it.h,img:r.img,url:r.url})}
  imgs.forEach(m=>URL.revokeObjectURL(m.url));imgs=out;
- for(const m of imgs){scenes[m.id]=(d.scenes||{})[m.id]||E;hist[m.id]={past:[scenes[m.id]],future:[]}}
+ for(const m of imgs){scenes[m.id]=d.cv===2?((d.scenes||{})[m.id]||E):E;hist[m.id]={past:[scenes[m.id]],future:[]}}
  show(0);autosave();toast('Back-up geladen')}catch(x){toast('Ongeldig bestand','err')}e.target.value=''};
-if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
-window.PROJECT_FLOW={name:'Project Flow',copyright:'(c) 2026 Project Flow',version:'1.0'};
-console.log('%cProject Flow v1.0 - (c) 2026 Project Flow','font-weight:bold');
+if('serviceWorker' in navigator&&location.protocol==='https:'){
+ const had=!!navigator.serviceWorker.controller;let rl=0;
+ const ask=w=>{const b=$('upd');b.classList.remove('hidden');b.onclick=()=>w.postMessage('skip')};
+ navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl){rl=1;location.reload()}});
+ navigator.serviceWorker.register('sw.js').then(reg=>{
+  if(reg.waiting&&had)ask(reg.waiting);
+  reg.addEventListener('updatefound',()=>{const w=reg.installing;w&&w.addEventListener('statechange',()=>{if(w.state==='installed'&&had)ask(w)})});
+  reg.update();setInterval(()=>reg.update(),600000)}).catch(()=>{})}
+window.PROJECT_FLOW={name:'Project Flow',copyright:'(c) 2026 Project Flow',version:'1.2'};
+console.log('%cProject Flow v1.2 - (c) 2026 Project Flow','font-weight:bold');
 })();
 </script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "57d14f6b495e4fc28f93415fcbd87ac8"}'></script>
