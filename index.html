@@ -134,6 +134,10 @@ html.dk #sp img{border-radius:18px}
  <div id="th" class="th"></div><hr>
  <label class="ck"><input type="checkbox" id="snap" checked> Snap naar lijnen</label>
  <label class="ck"><input type="checkbox" id="po" checked> Alleen pen (palm rejection)</label>
+ 
+ <div class="r" style="margin-top:6px"><strong>Weergave</strong></div>
+ <div class="r"><button class="btn" data-th="auto">Automatisch</button><button class="btn" data-th="light">Licht</button><button class="btn" data-th="dark">Donker</button></div>
+ <div class="sm">Automatisch volgt de instelling van je iPad.</div><hr>
  <div class="sm">Tip: dubbeltik op een lijn of symbool om het te verwijderen. Dubbeltik op tekst om te wijzigen.</div>
 </div></aside>
 <aside id="pr" class="panel"><div class="ph"><span>Acties</span><button class="x">✕</button></div><div class="pc">
@@ -143,10 +147,7 @@ html.dk #sp img{border-radius:18px}
  <div class="r"><button id="e1" class="btn">Export huidige</button><button id="ea" class="btn">Export alles</button></div>
  <div class="sm">Export alles maakt één ZIP-bestand.</div><hr>
  <div class="r"><button id="bk" class="btn">Back-up opslaan</button><button id="bl" class="btn">Back-up laden</button><input id="bf" class="hidden" type="file" accept=".json,application/json"></div>
- <div class="sm">Een back-up bewaart foto's én bewerkbare tekeningen.</div><hr>
- <div class="r"><strong>Weergave</strong></div>
- <div class="r"><button class="btn" data-th="auto">Automatisch</button><button class="btn" data-th="light">Licht</button><button class="btn" data-th="dark">Donker</button></div>
- <div class="sm">Automatisch volgt de instelling van je iPad.</div><hr><div class="sm">Project Flow · © 2026 Project Flow</div>
+ <div class="sm">Een back-up bewaart foto's én bewerkbare tekeningen.</div><hr><div class="sm">Project Flow · © 2026 Project Flow</div>
 </div></aside>
 <div id="bd"></div>
 <input id="fi" class="hidden" type="file" accept="image/*" multiple>
@@ -230,9 +231,9 @@ function snapPt(p,r){
 
 /* Tekenen */
 function begin(pos){
- const t=LT[lt],o={points:[pos.x,pos.y,pos.x,pos.y],stroke:t.c,strokeWidth:t.w,dash:t.d||[],lineCap:'butt',lineJoin:'miter',hitStrokeWidth:24,perfectDrawEnabled:false};
+ const t=LT[lt],u=1/base,o={points:[pos.x,pos.y,pos.x,pos.y],stroke:t.c,strokeWidth:t.w*u,dash:(t.d||[]).map(v=>v*u),lineCap:'butt',lineJoin:'miter',hitStrokeWidth:24*u,perfectDrawEnabled:false};
  if(tool==='line')shape=new Konva.Line(o);
- else{o.fill=t.c;o.pointerLength=o.pointerWidth=t.p;shape=new Konva.Arrow(o)}
+ else{o.fill=t.c;o.pointerLength=o.pointerWidth=t.p*u;shape=new Konva.Arrow(o)}
  dl.add(shape);enable(shape);order()}
 function finish(){
  if(!shape)return;
@@ -259,8 +260,8 @@ async function addText(pos){
  const v=await modal('Tekst','');if(!v){return}
  mkText(v,pos.x,pos.y,22);if(!keep)setTool('select')}
 function mkText(txt,x,y,fs){
- const t=new Konva.Text({x:x,y:y,text:txt,fontSize:fs,fill:'#FFC000',fontStyle:'bold',padding:4,perfectDrawEnabled:false});
- dl.add(t);enable(t);if(!keep)select(t);else dl.batchDraw();commit();save();return t}
+ const t=new Konva.Text({x:x,y:y,text:txt,fontSize:fs/base,fill:'#FFC000',fontStyle:'bold',padding:4/base,perfectDrawEnabled:false});
+ dl.add(t);enable(t);select(null);commit();save();return t}
 
 /* Symbolen */
 function mkShape(d){
@@ -273,8 +274,8 @@ function mkShape(d){
   g.add(new Konva.Text({x:-24,y:-15,width:48,height:30,text:d.t,fontSize:15,fontStyle:'bold',fill:'#000',align:'center',verticalAlign:'middle',listening:false}));return g}
  return new Konva.Circle({...o,radius:10})}
 function place(p,x,y){
- if(p.txt){mkText(p.txt,x-30,y-14,22)}
- else{const g=new Konva.Group({x:x,y:y,name:p.top?'top':''});g.add(mkShape(p));dl.add(g);enable(g);if(!keep)select(g);else dl.batchDraw();commit();save()}
+ if(p.txt){mkText(p.txt,x-30/base,y-14/base,22)}
+ else{const g=new Konva.Group({x:x,y:y,scaleX:1/base,scaleY:1/base,name:p.top?'top':''});g.add(mkShape(p));dl.add(g);enable(g);select(null);commit();save()}
  if(!keep){setTool('select')}}
 function ico(d){
  const s='<svg width="28" height="28" viewBox="0 0 30 30" fill="'+d.c+'" stroke="#000" stroke-width="1.5">';
@@ -435,7 +436,7 @@ $('bd').onclick=()=>B.classList.remove('dl','dr');
 
 /* Zoom en verschuiven (2 vingers) */
 const wp=()=>{const p=stage.getPointerPosition();return p&&stage.getAbsoluteTransform().copy().invert().point(p)};
-function view(){const k=stage.scaleX();tf.anchorSize(18/k);tf.rotateAnchorOffset(48/k);tf.padding(4/k);tf.borderStrokeWidth(1.5/k);dl.batchDraw();bgL.batchDraw()}
+function view(){dl.batchDraw();bgL.batchDraw()}
 function fitImg(){const m=imgs[idx];if(!m)return;bg.image(scaled(m.img,LW*stage.scaleX(),LH*stage.scaleX()));bgL.batchDraw()}
 function home(){base=Math.min(W/LW,H/LH);stage.scale({x:base,y:base});stage.position({x:(W-LW*base)/2,y:(H-LH*base)/2});view();fitImg()}
 let g=null;const cw=$('cw');
@@ -444,10 +445,12 @@ const tp=e=>{const t=T(e),a=t[0],b=t[1];return{x:(a.clientX+b.clientX)/2,y:(a.cl
 cw.addEventListener('touchstart',e=>{if(T(e).length===2){if(shape){shape.destroy();shape=null}const c=tp(e);g={x:c.x,y:c.y,d:c.d,k:stage.scaleX(),px:stage.x(),py:stage.y()};e.preventDefault()}},{passive:false});
 cw.addEventListener('touchmove',e=>{
  if(!g||T(e).length!==2)return;e.preventDefault();
- const c=tp(e),r=cw.getBoundingClientRect(),k=Math.min(Math.max(g.k*c.d/g.d,base*.7),base*10);
+ const c=tp(e),r=cw.getBoundingClientRect(),k=Math.min(Math.max(g.k*c.d/g.d,base),base*10);
  const wx=(g.x-r.left-g.px)/g.k,wy=(g.y-r.top-g.py)/g.k;
- stage.scale({x:k,y:k});stage.position({x:c.x-r.left-wx*k,y:c.y-r.top-wy*k});view()},{passive:false});
-cw.addEventListener('touchend',e=>{if(g&&T(e).length<2){g=null;clearTimeout(zt);zt=setTimeout(fitImg,250)}});
+ let x=c.x-r.left-wx*k,y=c.y-r.top-wy*k;const iw=LW*k,ih=LH*k;
+ x=iw<=W?(W-iw)/2:Math.min(0,Math.max(W-iw,x));y=ih<=H?(H-ih)/2:Math.min(0,Math.max(H-ih,y));
+ stage.scale({x:k,y:k});stage.position({x:x,y:y});view()},{passive:false});
+cw.addEventListener('touchend',e=>{if(g&&T(e).length<2){g=null;if(stage.scaleX()<=base*1.03)home();else{clearTimeout(zt);zt=setTimeout(fitImg,250)}}});
 $('zr').onclick=home;
 
 /* Weergave: automatisch / licht / donker */
@@ -499,8 +502,8 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
   if(reg.waiting&&had)ask(reg.waiting);
   reg.addEventListener('updatefound',()=>{const w=reg.installing;w&&w.addEventListener('statechange',()=>{if(w.state==='installed'&&had)ask(w)})});
   reg.update();setInterval(()=>reg.update(),600000)}).catch(()=>{})}
-window.PROJECT_FLOW={name:'Project Flow',copyright:'(c) 2026 Project Flow',version:'1.2'};
-console.log('%cProject Flow v1.2 - (c) 2026 Project Flow','font-weight:bold');
+window.PROJECT_FLOW={name:'Project Flow',copyright:'(c) 2026 Project Flow',version:'1.4'};
+console.log('%cProject Flow v1.4 - (c) 2026 Project Flow','font-weight:bold');
 })();
 </script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "57d14f6b495e4fc28f93415fcbd87ac8"}'></script>
