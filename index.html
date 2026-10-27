@@ -16,7 +16,8 @@
 <script>try{var t=localStorage.getItem("pf-theme")||"auto";if(t==="dark"||(t==="auto"&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dk")}catch(e){}</script>
 <link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-180.png">
 <style>
-:root{--brand:#C00000;--dark:#8A0000;--line:#e2e5ea;--acc:#0B4EA2}
+/* Project Flow - Themakleur */
+:root{--brand:#2BB3B3;--dark:#1a8a8a;--line:#e2e5ea;--acc:#0B4EA2}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;overflow:hidden;background:#fff;overscroll-behavior:none}
 body{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,Roboto,sans-serif;color:#1c2024}
@@ -119,7 +120,7 @@ html.dk #sp img{border-radius:18px}
  </div>
  <div class="row" id="lr"></div>
 </div>
-<div id="main"><aside id="sb"></aside><main id="cw"><div id="sp"><img src="logo.png" alt="Project Flow"><div>Tik om foto's toe te voegen</div></div><div id="stage"></div></main></div>
+<div id="main"><aside id="sb"></aside><main id="cw"><div id="sp"><img src="logo.png" alt="Project Flow"><div>Tik om foto's toe te voegen</div></div><div id="stage"></div><div id="meta" style="position:absolute;bottom:0;left:0;right:0;padding:8px;background:#0003;color:#fff;font-size:11px;line-height:1.3;max-height:60px;overflow-y:auto;pointer-events:none;opacity:0;transition:opacity .2s"></div></main></div>
 <div class="bb">
  <button id="ad" class="bt a">＋</button>
  <button id="pv" class="bt">←</button>
@@ -156,11 +157,16 @@ html.dk #sp img{border-radius:18px}
 <div id="md" class="hidden"><div class="mb"><b id="mt"></b><input id="mi"><div><button id="mc" class="btn" style="background:#666">Annuleren</button><button id="mo" class="btn">OK</button></div></div></div>
 <div id="pg" class="hidden"><div><b>Exporteren...</b><div id="ps" class="sm"></div><div id="pf"></div></div></div>
 
+
+
 <script src="https://unpkg.com/konva@9/konva.min.js"></script>
+
 <script>window.Konva||document.write('<script src="https://cdn.jsdelivr.net/npm/konva@9/konva.min.js"><\/script>')</script>
 <script>
 (function(){
 'use strict';
+<script src="https://cdn.jsdelivr.net/npm/piexifjs@0.1/piexif.min.js"></script>
+<script>
 const $=id=>document.getElementById(id);
 if(!window.Konva){document.body.innerHTML='<h2 style="padding:40px">Konva niet geladen. Controleer internet en herlaad.</h2>';return}
 Konva.pixelRatio=Math.min(devicePixelRatio||1,3);
@@ -351,7 +357,7 @@ const nid=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 function loadImg(blob){return new Promise(res=>{const u=URL.createObjectURL(blob),im=new Image();im.onload=()=>res({img:im,url:u});im.onerror=()=>{URL.revokeObjectURL(u);res(null)};im.src=u})}
 async function addFiles(files){
  if(!files.length)return;
- const items=(await Promise.all(files.map(async f=>{const r=await loadImg(f);return r&&{id:nid(),name:f.name,blob:f,img:r.img,url:r.url,w:r.img.naturalWidth,h:r.img.naturalHeight}}))).filter(Boolean);
+ const items=(await Promise.all(files.map(async f=>{const r=await loadImg(f);return r&&{id:nid(),name:f.name,blob:f,img:r.img,url:r.url,w:r.img.naturalWidth,h:r.img.naturalHeight,note:r.note||""}}))).filter(Boolean);
  if(!items.length)return;
  const curId=imgs[idx]&&imgs[idx].id;
  if(curId){select(null);save()}
@@ -361,8 +367,8 @@ async function addFiles(files){
  show(idx);autosave()}
 function show(i){
  idx=i;const m=imgs[i];
- if(!m){fit();apply(E);$('cn').textContent='–'}
- else{fit();apply(scenes[m.id]||E);$('cn').textContent=m.name||'–'}
+ if(!m){fit();apply(E);const mt=$("meta");if(mt){mt.textContent="";mt.style.opacity="0"};$('cn').textContent='–'}
+ else{fit();apply(scenes[m.id]||E);if(mt){mt.textContent=m.note||"";mt.style.opacity=m.note?"1":"0"};$('cn').textContent=m.name||'–'}
  thumbs();updUR()}
 function thumbs(){
  const t=$('th');t.innerHTML='';
@@ -502,8 +508,8 @@ if('serviceWorker' in navigator&&location.protocol==='https:'){
   if(reg.waiting&&had)ask(reg.waiting);
   reg.addEventListener('updatefound',()=>{const w=reg.installing;w&&w.addEventListener('statechange',()=>{if(w.state==='installed'&&had)ask(w)})});
   reg.update();setInterval(()=>reg.update(),600000)}).catch(()=>{})}
-window.PROJECT_FLOW={name:'Project Flow',copyright:'(c) 2026 Project Flow',version:'1.4'};
-console.log('%cProject Flow v1.4 - (c) 2026 Project Flow','font-weight:bold');
+window.PROJECT_FLOW={name:'Project Flow',copyright:'(c) 2026 Project Flow',version:'1.6'};
+console.log('%cProject Flow v1.6 - (c) 2026 Project Flow','font-weight:bold');
 })();
 </script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "57d14f6b495e4fc28f93415fcbd87ac8"}'></script>
