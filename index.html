@@ -133,6 +133,7 @@ html.dk #sp img{border-radius:18px}
 <div id="toasts"></div>
 <div id="md" class="hidden"><div class="mb"><b id="mt"></b><input id="mi"><div><button id="mc" class="btn" style="background:#666">Annuleren</button><button id="mo" class="btn">OK</button></div></div></div>
 <div id="pg" class="hidden"><div><b>Exporteren...</b><div id="ps" class="sm"></div><div id="pf"></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/piexifjs@0.1/piexif.min.js"></script>
 <script src="https://unpkg.com/konva@9/konva.min.js"></script>
 <script>
 (function(){
@@ -211,8 +212,10 @@ let at=0;function autosave(){clearTimeout(at);at=setTimeout(()=>dbSet(imgs.lengt
 function save(){const m=imgs[idx];if(m){scenes[m.id]=JSON.stringify(kids().map(n=>{try{return n.toJSON()}catch(e){return null}}).filter(Boolean))}autosave()}
 const cmp=(a,b)=>(a.name||'').localeCompare(b.name||'',undefined,{numeric:true,sensitivity:'base'});
 const nid=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-async function loadImg(blob){return new Promise(res=>{const u=URL.createObjectURL(blob),im=new Image();im.onload=()=>res({img:im,url:u,note:''});im.onerror=()=>{URL.revokeObjectURL(u);res(null)};im.src=u})}
-async function addFiles(files){if(!files.length)return;files.sort(cmp);const items=(await Promise.all(files.map(async f=>{const r=await loadImg(f);return r&&{id:nid(),name:f.name,blob:f,img:r.img,url:r.url,w:r.img.naturalWidth,h:r.img.naturalHeight,note:''}}))).filter(Boolean);if(!items.length)return;const curId=imgs[idx]&&imgs[idx].id;if(curId){select(null);save()}items.forEach(m=>{scenes[m.id]=E;hist[m.id]={past:[E],future:[]}});imgs=imgs.concat(items).sort(cmp);idx=curId?imgs.findIndex(m=>m.id===curId):0;show(idx);autosave()}
+async function loadImg(blob){return new Promise(async res=>{const u=URL.createObjectURL(blob),im=new Image();let note='';
+try{const arr=new Uint8Array(await blob.arrayBuffer());if(window.piexif){const ex=window.piexif.load(arr);const ifd0=ex["0th"];if(ifd0){const desc=ifd0[window.piexif.ImageIFD.ImageDescription];if(desc){try{note=new TextDecoder().decode(new Uint8Array(desc)).replace(/\x00/g,'').trim()}catch(e){note=String.fromCharCode(...Array.from(new Uint8Array(desc))).replace(/\x00/g,'').trim()}}}}}catch(e){}
+im.onload=()=>res({img:im,url:u,note:note});im.onerror=()=>{URL.revokeObjectURL(u);res(null)};im.src=u})}
+async function addFiles(files){if(!files.length)return;files.sort(cmp);const items=(await Promise.all(files.map(async f=>{const r=await loadImg(f);return r&&{id:nid(),name:f.name,blob:f,img:r.img,url:r.url,w:r.img.naturalWidth,h:r.img.naturalHeight,note:r.note||''}}))).filter(Boolean);if(!items.length)return;const curId=imgs[idx]&&imgs[idx].id;if(curId){select(null);save()}items.forEach(m=>{scenes[m.id]=E;hist[m.id]={past:[E],future:[]}});imgs=imgs.concat(items).sort(cmp);idx=curId?imgs.findIndex(m=>m.id===curId):0;show(idx);autosave()}
 function show(i){idx=i;const m=imgs[i];if(!m){fit();apply(E);$('cn').textContent='–';$('meta').textContent='';$('meta').style.opacity='0';$('sp').classList.remove('hidden')}else{fit();apply(scenes[m.id]||E);$('cn').textContent=m.name||'–';const mt=$('meta');mt.textContent=m.note||'';mt.style.opacity=m.note?'1':'0';$('sp').classList.add('hidden')}thumbs();updUR()}
 function thumbs(){const t=$('th');t.innerHTML='';imgs.forEach((m,i)=>{const b=document.createElement('button');b.className='tn'+(i===idx?' on':'');b.textContent=i+1;b.title=m.name;b.onclick=()=>go(i);t.appendChild(b)});const has=imgs.length>0;['pv','nx','ex','rm'].forEach(k=>$(k).disabled=!has)}
 function go(i){if(!imgs.length||i===idx)return;select(null);save();show(i)}
@@ -242,7 +245,7 @@ $('bf').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;const d=JS
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 size();setTool('select');thumbs();
 (async()=>{const d=await dbGet();if(!d||!d.imgs||!d.imgs.length)return;const out=[];for(const it of d.imgs){const r=await loadImg(it.blob);if(r)out.push({id:it.id,name:it.name,blob:it.blob,w:it.w,h:it.h,img:r.img,url:r.url,note:it.note||''})}if(!out.length)return;imgs=out;for(const m of imgs){scenes[m.id]=(d.scenes||{})[m.id]||E;hist[m.id]={past:[scenes[m.id]],future:[]}}show(Math.min(Math.max(d.idx||0,0),imgs.length-1));toast('Vorige sessie hersteld')})();
-console.log('%cProject Flow v1.0 - (c) 2026 Project Flow','font-weight:bold');
+console.log('%cProject Flow v1.1 - (c) 2026 Project Flow','font-weight:bold');
 })();
 </script>
 <script src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "57d14f6b495e4fc28f93415fcbd87ac8"}'></script>
