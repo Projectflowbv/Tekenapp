@@ -134,7 +134,6 @@ html.dk #sp img{border-radius:18px}
 <div id="toasts"></div>
 <div id="md" class="hidden"><div class="mb"><b id="mt"></b><input id="mi"><div><button id="mc" class="btn" style="background:#666">Annuleren</button><button id="mo" class="btn">OK</button></div></div></div>
 <div id="pg" class="hidden"><div><b>Exporteren...</b><div id="ps" class="sm"></div><div id="pf"></div></div></div>
-<script src="https://cdn.jsdelivr.net/npm/piexifjs@0.1/piexif.min.js"></script>
 <script src="https://unpkg.com/konva@9/konva.min.js"></script>
 <script>
 (function(){
@@ -213,11 +212,76 @@ let at=0;function autosave(){clearTimeout(at);at=setTimeout(()=>dbSet(imgs.lengt
 function save(){const m=imgs[idx];if(m){scenes[m.id]=JSON.stringify(kids().map(n=>{try{return n.toJSON()}catch(e){return null}}).filter(Boolean))}autosave()}
 const cmp=(a,b)=>(a.name||'').localeCompare(b.name||'',undefined,{numeric:true,sensitivity:'base'});
 const nid=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-async function loadImg(blob){return new Promise(async res=>{const u=URL.createObjectURL(blob),im=new Image();let note='';
-try{const arr=new Uint8Array(await blob.arrayBuffer());if(window.piexif){const ex=window.piexif.load(arr);const ifd0=ex["0th"];if(ifd0){const desc=ifd0[window.piexif.ImageIFD.ImageDescription];if(desc){try{note=new TextDecoder().decode(new Uint8Array(desc)).replace(/\x00/g,'').trim()}catch(e){note=String.fromCharCode(...Array.from(new Uint8Array(desc))).replace(/\x00/g,'').trim()}}}}}catch(e){}
-im.onload=()=>res({img:im,url:u,note:note});im.onerror=()=>{URL.revokeObjectURL(u);res(null)};im.src=u})}
-async function addFiles(files){if(!files.length)return;files.sort(cmp);const items=(await Promise.all(files.map(async f=>{const r=await loadImg(f);return r&&{id:nid(),name:f.name,blob:f,img:r.img,url:r.url,w:r.img.naturalWidth,h:r.img.naturalHeight,note:r.note||''}}))).filter(Boolean);if(!items.length)return;const curId=imgs[idx]&&imgs[idx].id;if(curId){select(null);save()}items.forEach(m=>{scenes[m.id]=E;hist[m.id]={past:[E],future:[]}});imgs=imgs.concat(items).sort(cmp);idx=curId?imgs.findIndex(m=>m.id===curId):0;show(idx);autosave()}
-function show(i){idx=i;const m=imgs[i];const mt=$('meta');if(!m){mt.textContent='';mt.style.display='none';fit();apply(E);$('cn').textContent='–';$('sp').classList.remove('hidden')}else{mt.textContent=m.note||'';mt.style.display=m.note?'block':'none';fit();apply(scenes[m.id]||E);$('cn').textContent=m.name||'–';$('sp').classList.add('hidden')}thumbs();updUR()}
+function parseNote(u){
+const dec=(a)=>{try{return new TextDecoder('utf-8').decode(a)}catch(e){return String.fromCharCode.apply(null,Array.from(a))}};
+const clean=s=>(s||'').replace(/\u0000/g,'').replace(/\s+/g,' ').trim();
+const res={};
+try{
+if(u[0]===0xFF&&u[1]===0xD8){
+let p=2;
+while(p+4<u.length){
+if(u[p]!==0xFF){p++;continue}
+const t=u[p+1];
+if(t===0xFF){p++;continue}
+if(t===0xDA||t===0xD9)break;
+if(t>=0xD0&&t<=0xD8||t===0x01){p+=2;continue}
+const len=(u[p+2]<<8)|u[p+3],s=p+4,e=Math.min(p+2+len,u.length);
+if(t===0xE1){
+ if(u[s]===0x45&&u[s+1]===0x78&&u[s+2]===0x69&&u[s+3]===0x66)exif(u,s+6,e,res);
+ else{const h=dec(u.subarray(s,Math.min(s+29,e)));if(h.indexOf('http://ns.adobe.com/xap/1.0/')===0)xmp(dec(u.subarray(s+29,e)),res)}
+}else if(t===0xED){iptc(u,s,e,res)}
+p=p+2+len;
+}
+}else{xmp(Array.from(u.subarray(0,Math.min(u.length,600000))).map(c=>String.fromCharCode(c)).join(''),res)}
+}catch(err){}
+return clean(res.iptc||res.xmp||res.desc||res.user||res.xp||'');
+function xmp(x,r){
+ let m=x.match(/<dc:description[^>]*>[\s\S]*?<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>/);
+ if(!m)m=x.match(/dc:description\s*=\s*"([^"]*)"/);
+ if(m&&m[1]){r.xmp=m[1].replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&')}
+}
+function iptc(u,s,e,r){
+ const sig='Photoshop 3.0';let ok=true;for(let i=0;i<sig.length;i++)if(u[s+i]!==sig.charCodeAt(i))ok=false;if(!ok)return;
+ let q=s+14;
+ while(q+12<=e){
+  if(!(u[q]===0x38&&u[q+1]===0x42&&u[q+2]===0x49&&u[q+3]===0x4D))break;
+  const id=(u[q+4]<<8)|u[q+5];let nl=u[q+6];let off=q+6+1+nl;if((1+nl)%2)off++;
+  const size=(u[off]<<24|u[off+1]<<16|u[off+2]<<8|u[off+3])>>>0;off+=4;
+  if(id===0x0404){
+   let k=off;const end=off+size;
+   while(k+5<=end){
+    if(u[k]!==0x1C){k++;continue}
+    const rec=u[k+1],ds=u[k+2],l=(u[k+3]<<8)|u[k+4];
+    if(rec===2&&ds===120){r.iptc=dec(u.subarray(k+5,k+5+l))}
+    k+=5+l;
+   }
+  }
+  q=off+size+(size%2);
+ }
+}
+function exif(u,t,e,r){
+ const le=u[t]===0x49;
+ const g16=o=>le?(u[o]|u[o+1]<<8):(u[o]<<8|u[o+1]);
+ const g32=o=>(le?(u[o]|u[o+1]<<8|u[o+2]<<16|u[o+3]<<24):(u[o]<<24|u[o+1]<<16|u[o+2]<<8|u[o+3]))>>>0;
+ const ifd=(o,exifSub)=>{
+  const n=g16(t+o);
+  for(let i=0;i<n;i++){
+   const en=t+o+2+i*12,tag=g16(en),cnt=g32(en+4);
+   const vo=cnt<=4?en+8:t+g32(en+8);
+   if(vo+cnt>u.length)continue;
+   if(tag===0x010E&&!exifSub)r.desc=dec(u.subarray(vo,vo+cnt));
+   else if(tag===0x9C9C&&!exifSub){let s='';for(let k=0;k+1<cnt;k+=2)s+=String.fromCharCode(u[vo+k]|u[vo+k+1]<<8);r.xp=s}
+   else if(tag===0x9286&&exifSub&&cnt>8)r.user=dec(u.subarray(vo+8,vo+cnt));
+   else if(tag===0x8769&&!exifSub){ifd(g32(en+8),true)}
+  }
+ };
+ ifd(g32(t+4),false);
+}
+}
+
+async function loadImg(blob){return new Promise(async res=>{const u=URL.createObjectURL(blob),im=new Image();let note='';try{note=parseNote(new Uint8Array(await blob.slice(0,1500000).arrayBuffer()))}catch(e){}im.onload=()=>res({img:im,url:u,note:note});im.onerror=()=>{URL.revokeObjectURL(u);res(null)};im.src=u})}
+async function addFiles(files){if(!files.length)return;files.sort(cmp);const items=(await Promise.all(files.map(async f=>{const r=await loadImg(f);return r&&{id:nid(),name:f.name,blob:f,img:r.img,url:r.url,w:r.img.naturalWidth,h:r.img.naturalHeight,note:r.note||''}}))).filter(Boolean);if(!items.length)return;const curId=imgs[idx]&&imgs[idx].id;if(curId){select(null);save()}items.forEach(m=>{scenes[m.id]=E;hist[m.id]={past:[E],future:[]}});imgs=imgs.concat(items).sort(cmp);idx=curId?imgs.findIndex(m=>m.id===curId):0;show(idx);autosave();const nn=items.filter(m=>m.note).length;toast(nn?nn+' opmerking(en) gevonden':'Geen opmerking in foto gevonden')}
+function show(i){idx=i;const m=imgs[i];const mt=$('meta');if(!m){mt.textContent='';mt.style.display='none';fit();apply(E);$('cn').textContent='–';$('sp').classList.remove('hidden')}else{mt.textContent=m.note||'';mt.style.display=m.note?'block':'none';fit();apply(scenes[m.id]||E);$('cn').textContent=m.name||'–';$('sp').classList.add('hidden')}$('info').textContent=imgs.length?(idx+1)+' / '+imgs.length:'– / –';thumbs();updUR()}
 function thumbs(){const t=$('th');t.innerHTML='';imgs.forEach((m,i)=>{const b=document.createElement('button');b.className='tn'+(i===idx?' on':'');b.textContent=i+1;b.title=m.name;b.onclick=()=>go(i);t.appendChild(b)});const has=imgs.length>0;['pv','nx','ex','rm'].forEach(k=>$(k).disabled=!has)}
 function go(i){if(!imgs.length||i===idx)return;select(null);save();show(i)}
 const step=d=>imgs.length&&go((idx+d+imgs.length)%imgs.length);
@@ -242,10 +306,10 @@ async function zip(files){const en=new TextEncoder(),P=[],C=[];let off=0,cs=0;fo
 $('ea').onclick=async()=>{if(!imgs.length)return;const keepI=idx,files=[],used={},pg=$('pg');pg.classList.remove('hidden');try{for(let i=0;i<imgs.length;i++){if(i!==idx){select(null);save();show(i)}$('ps').textContent=(i+1)+' / '+imgs.length;$('pf').style.width=((i+1)/imgs.length*100)+'%';await new Promise(r=>setTimeout(r,30));const b=await renderBlob();let n=baseName(imgs[i]);if(used[n]){used[n]++;n+='-'+used[n]}else used[n]=1;files.push(new File([b],n+'.jpg',{type:'image/jpeg'}))}}catch(e){toast('Export fout','err')}pg.classList.add('hidden');show(keepI);if(files.length){try{const z=await zip(files);await deliver([new File([z],'ProjectFlow-'+new Date().toISOString().slice(0,10)+'.zip',{type:'application/zip'})])}catch(e){toast('ZIP fout','err')}}};
 $('bk').onclick=async()=>{try{save();const rd=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});const o={app:'Project Flow',v:1,scenes:scenes,imgs:await Promise.all(imgs.map(async m=>({id:m.id,name:m.name,w:m.w,h:m.h,note:m.note||'',d:await rd(m.blob)})))};await deliver([new File([JSON.stringify(o)],'ProjectFlow-backup-'+new Date().toISOString().slice(0,10)+'.json',{type:'application/json'})])}catch(e){toast('Back-up mislukt','err')}};
 $('bl').onclick=()=>$('bf').click();
-$('bf').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;const d=JSON.parse(await f.text());if(!d.imgs)throw 0;const out=[];for(const it of d.imgs){const b=await (await fetch(it.d)).blob(),r=await loadImg(b);if(r)out.push({id:it.id,name:it.name,blob:b,w:it.w,h:it.h,img:r.img,url:r.url,note:it.note||''})}imgs.forEach(m=>URL.revokeObjectURL(m.url));imgs=out;for(const m of imgs){scenes[m.id]=(d.scenes||{})[m.id]||E;hist[m.id]={past:[scenes[m.id]],future:[]}}show(0);autosave();toast('Back-up geladen')}catch(x){toast('Ongeldig bestand','err')}e.target.value=''};
+$('bf').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;const d=JSON.parse(await f.text());if(!d.imgs)throw 0;const out=[];for(const it of d.imgs){const b=await (await fetch(it.d)).blob(),r=await loadImg(b);if(r)out.push({id:it.id,name:it.name,blob:b,w:it.w,h:it.h,img:r.img,url:r.url,note:it.note||r.note||''})}imgs.forEach(m=>URL.revokeObjectURL(m.url));imgs=out;for(const m of imgs){scenes[m.id]=(d.scenes||{})[m.id]||E;hist[m.id]={past:[scenes[m.id]],future:[]}}show(0);autosave();toast('Back-up geladen')}catch(x){toast('Ongeldig bestand','err')}e.target.value=''};
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 size();setTool('select');thumbs();
-(async()=>{const d=await dbGet();if(!d||!d.imgs||!d.imgs.length)return;const out=[];for(const it of d.imgs){const r=await loadImg(it.blob);if(r)out.push({id:it.id,name:it.name,blob:it.blob,w:it.w,h:it.h,img:r.img,url:r.url,note:it.note||''})}if(!out.length)return;imgs=out;for(const m of imgs){scenes[m.id]=(d.scenes||{})[m.id]||E;hist[m.id]={past:[scenes[m.id]],future:[]}}show(Math.min(Math.max(d.idx||0,0),imgs.length-1));toast('Vorige sessie hersteld')})();
+(async()=>{const d=await dbGet();if(!d||!d.imgs||!d.imgs.length)return;const out=[];for(const it of d.imgs){const r=await loadImg(it.blob);if(r)out.push({id:it.id,name:it.name,blob:it.blob,w:it.w,h:it.h,img:r.img,url:r.url,note:it.note||r.note||''})}if(!out.length)return;imgs=out;for(const m of imgs){scenes[m.id]=(d.scenes||{})[m.id]||E;hist[m.id]={past:[scenes[m.id]],future:[]}}show(Math.min(Math.max(d.idx||0,0),imgs.length-1));toast('Vorige sessie hersteld')})();
 console.log('%cProject Flow v1.1 - (c) 2026 Project Flow','font-weight:bold');
 let _rt;new ResizeObserver(()=>{clearTimeout(_rt);_rt=setTimeout(()=>{const s=$('stage');if(Math.abs(s.clientWidth-W)>2||Math.abs(s.clientHeight-H)>2)fit()},120)}).observe($('stage'));
 })();
