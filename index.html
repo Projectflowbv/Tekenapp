@@ -143,7 +143,7 @@ html.dk #sp img{border-radius:18px}
 const $=id=>document.getElementById(id);
 if(!window.Konva){document.body.innerHTML='<h2 style="padding:40px">Konva niet geladen</h2>';return}
 Konva.pixelRatio=Math.min(devicePixelRatio||1,3);
-const toast=(m,t)=>{const e=document.createElement('div');e.className='toast '+(t||'');e.textContent=m;$('toasts').appendChild(e);setTimeout(()=>e.classList.add('show'),10);setTimeout(()=>{e.classList.remove('show');setTimeout(()=>e.remove(),300)},3000)};
+const toast=(m,t)=>{const e=document.createElement('div');e.className='toast '+(t||'');e.textContent=m;$('toasts').appendChild(e);setTimeout(()=>e.classList.add('show'),10);setTimeout(()=>{e.classList.remove('show');setTimeout(()=>e.remove(),300)},t==='err'?7000:3000)};
 function modal(title,val){return new Promise(res=>{const m=$('md'),i=$('mi');$('mt').textContent=title;i.classList.toggle('hidden',val===undefined);i.value=val||'';m.classList.remove('hidden');if(val!==undefined)setTimeout(()=>{i.focus();i.select()},50);
  const done=v=>{m.classList.add('hidden');$('mo').onclick=$('mc').onclick=i.onkeydown=null;res(v)};
  $('mo').onclick=()=>done(val===undefined?true:i.value);$('mc').onclick=()=>done(null);i.onkeydown=e=>{if(e.key==='Enter')done(i.value)}})}
@@ -282,8 +282,19 @@ function exif(u,t,e,r){
 }
 
 async function readNote(blob){const sl=blob.slice(0,1500000);let buf;if(sl.arrayBuffer)buf=await sl.arrayBuffer();else buf=await new Promise((ok,no)=>{const f=new FileReader();f.onload=()=>ok(f.result);f.onerror=no;f.readAsArrayBuffer(sl)});return parseNote(new Uint8Array(buf))}
-async function loadImg(blob){const u=URL.createObjectURL(blob),im=new Image();const img=await new Promise(res=>{im.onload=()=>res(im);im.onerror=()=>res(null);im.src=u});if(!img){URL.revokeObjectURL(u);return null}let note='';try{note=await Promise.race([readNote(blob),new Promise(r=>setTimeout(()=>r(''),3000))])}catch(e){}return{img:img,url:u,note:note||''}}
-async function addFiles(files){if(!files.length)return;files.sort(cmp);const items=(await Promise.all(files.map(async f=>{const r=await loadImg(f);return r&&{id:nid(),name:f.name,blob:f,img:r.img,url:r.url,w:r.img.naturalWidth,h:r.img.naturalHeight,note:r.note||''}}))).filter(Boolean);const fails=files.length-items.length;if(fails)toast(fails+" foto('s) kon niet geopend worden",'err');if(!items.length)return;const curId=imgs[idx]&&imgs[idx].id;if(curId){select(null);save()}items.forEach(m=>{scenes[m.id]=E;hist[m.id]={past:[E],future:[]}});imgs=imgs.concat(items).sort(cmp);idx=curId?imgs.findIndex(m=>m.id===curId):0;show(idx);autosave();const nn=items.filter(m=>m.note).length;if(!fails)toast(nn?nn+' opmerking(en) gevonden':'Geen opmerking in foto gevonden')}
+const tryImg=b=>new Promise(res=>{const u=URL.createObjectURL(b),im=new Image();im.onload=()=>res({img:im,url:u,blob:b});im.onerror=()=>{URL.revokeObjectURL(u);res(null)};im.src=u});
+async function shrink(src,w,h,max){const s=Math.min(1,max/Math.max(w,h)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(w*s));c.height=Math.max(1,Math.round(h*s));const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.imageSmoothingQuality='high';x.drawImage(src,0,0,c.width,c.height);const nb=await new Promise(ok=>c.toBlob(ok,'image/jpeg',.92));c.width=c.height=1;return nb}
+async function loadImg(blob){let r=await tryImg(blob);
+if(!r&&window.createImageBitmap){try{const bm=await createImageBitmap(blob);const nb=await shrink(bm,bm.width,bm.height,4096);if(bm.close)bm.close();if(nb)r=await tryImg(nb)}catch(e){}}
+if(!r)return null;
+if(Math.max(r.img.naturalWidth,r.img.naturalHeight)>4096){try{const nb=await shrink(r.img,r.img.naturalWidth,r.img.naturalHeight,4096);const r2=nb&&await tryImg(nb);if(r2){URL.revokeObjectURL(r.url);r.img=r2.img;r.url=r2.url;r.blob=nb}}catch(e){}}
+let note='';try{note=await Promise.race([readNote(blob),new Promise(q=>setTimeout(()=>q(''),3000))])}catch(e){}
+r.note=note||'';return r}
+async function addFiles(files){if(!files.length)return;files.sort(cmp);const items=[],failed=[];
+for(const f of files){let r=null;try{r=await loadImg(f)}catch(e){}
+if(r)items.push({id:nid(),name:f.name,blob:r.blob||f,img:r.img,url:r.url,w:r.img.naturalWidth,h:r.img.naturalHeight,note:r.note||''});else failed.push(f)}
+if(failed.length){const ty=[...new Set(failed.map(f=>f.type||(f.name.split('.').pop()||'?')))].join(', ');let t=(failed.length===1?'1 foto kon niet geopend worden':failed.length+' foto’s konden niet geopend worden')+' ('+ty+')';if(/hei[cf]/i.test(ty+failed.map(f=>f.name).join()))t+=' – HEIC wordt hier niet ondersteund, zet de camera op JPEG / meest compatibel';toast(t,'err')}
+if(!items.length)return;const curId=imgs[idx]&&imgs[idx].id;if(curId){select(null);save()}items.forEach(m=>{scenes[m.id]=E;hist[m.id]={past:[E],future:[]}});imgs=imgs.concat(items).sort(cmp);idx=curId?imgs.findIndex(m=>m.id===curId):0;show(idx);autosave();const nn=items.filter(m=>m.note).length;if(!failed.length)toast(nn?nn+(nn===1?' opmerking gevonden':' opmerkingen gevonden'):'Geen opmerking in foto gevonden')}
 function show(i){idx=i;const m=imgs[i];const mt=$('meta');if(!m){mt.textContent='';mt.style.display='none';$('cw').style.setProperty('--mh','0px');fit();apply(E);$('cn').textContent='–';$('sp').classList.remove('hidden')}else{mt.textContent=m.note||'';mt.style.display=m.note?'block':'none';$('cw').style.setProperty('--mh',(m.note?mt.offsetHeight:0)+'px');fit();apply(scenes[m.id]||E);$('cn').textContent=m.name||'–';$('sp').classList.add('hidden')}$('info').textContent=imgs.length?(idx+1)+' / '+imgs.length:'– / –';thumbs();updUR()}
 function thumbs(){const t=$('th');t.innerHTML='';imgs.forEach((m,i)=>{const b=document.createElement('button');b.className='tn'+(i===idx?' on':'');b.textContent=i+1;b.title=m.name;b.onclick=()=>go(i);t.appendChild(b)});const has=imgs.length>0;['pv','nx','ex','rm','rl','rr'].forEach(k=>$(k).disabled=!has)}
 function go(i){if(!imgs.length||i===idx)return;select(null);save();show(i)}
@@ -328,7 +339,7 @@ $('bf').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;const d=JS
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 size();setTool('select');thumbs();
 (async()=>{const d=await dbGet();if(!d||!d.imgs||!d.imgs.length)return;const out=[];for(const it of d.imgs){const r=await loadImg(it.blob);if(r)out.push({id:it.id,name:it.name,blob:it.blob,w:it.w,h:it.h,img:r.img,url:r.url,note:it.note||r.note||''})}if(!out.length)return;imgs=out;for(const m of imgs){scenes[m.id]=(d.scenes||{})[m.id]||E;hist[m.id]={past:[scenes[m.id]],future:[]}}show(Math.min(Math.max(d.idx||0,0),imgs.length-1));toast('Vorige sessie hersteld')})();
-console.log('%cProject Flow v1.2 - (c) 2026 Project Flow','font-weight:bold');
+console.log('%cProject Flow v1.3 - (c) 2026 Project Flow','font-weight:bold');
 let _rt;new ResizeObserver(()=>{clearTimeout(_rt);_rt=setTimeout(()=>{const s=$('stage');if(Math.abs(s.clientWidth-W)>2||Math.abs(s.clientHeight-H)>2)fit()},120)}).observe($('stage'));
 })();
 </script>
