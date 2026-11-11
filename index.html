@@ -101,7 +101,7 @@ html.dk #sp img{border-radius:18px}
  </div>
  <div class="row" id="lr"></div>
 </div>
-<div id="main"><aside id="sb"></aside><main id="cw"><div id="sp"><img src="logo.png" alt="Project Flow"><div>Tik om foto's toe te voegen</div><div id="ver" style="margin-top:14px;font-size:11px;opacity:.55"></div></div><div id="stage"></div><div id="meta"></div></main></div>
+<div id="main"><aside id="sb"></aside><main id="cw"><div id="sp"><img src="logo.png" alt="Project Flow"><div>Tik om foto's toe te voegen</div></div><div id="stage"></div><div id="meta"></div></main></div>
 <div class="bb">
  <button id="ad" class="bt a">＋</button>
  <button id="pv" class="bt">←</button>
@@ -111,7 +111,6 @@ html.dk #sp img{border-radius:18px}
  <button id="rm" class="bt d">🗑</button>
  <button id="rl" class="bt" title="Links draaien">↺</button>
  <button id="rr" class="bt" title="Rechts draaien">↻</button>
- <button id="ib" class="bt" title="Info over foto">ⓘ</button>
  <span id="info">– / –</span>
 </div>
 <aside id="pl" class="panel"><div class="ph"><span>Project Flow · Foto's</span><button class="x">✕</button></div><div class="pc">
@@ -144,12 +143,12 @@ html.dk #sp img{border-radius:18px}
 const $=id=>document.getElementById(id);
 if(!window.Konva){document.body.innerHTML='<h2 style="padding:40px">Konva niet geladen</h2>';return}
 Konva.pixelRatio=Math.min(devicePixelRatio||1,3);
-const toast=(m,t)=>{const e=document.createElement('div');e.className='toast '+(t||'');e.textContent=m;$('toasts').appendChild(e);setTimeout(()=>e.classList.add('show'),10);setTimeout(()=>{e.classList.remove('show');setTimeout(()=>e.remove(),300)},t==='err'?7000:3000)};
+const toast=(m,t)=>{const e=document.createElement('div');e.className='toast '+(t||'');e.textContent=m;$('toasts').appendChild(e);setTimeout(()=>e.classList.add('show'),10);setTimeout(()=>{e.classList.remove('show');setTimeout(()=>e.remove(),300)},3000)};
 function modal(title,val){return new Promise(res=>{const m=$('md'),i=$('mi');$('mt').textContent=title;i.classList.toggle('hidden',val===undefined);i.value=val||'';m.classList.remove('hidden');if(val!==undefined)setTimeout(()=>{i.focus();i.select()},50);
  const done=v=>{m.classList.add('hidden');$('mo').onclick=$('mc').onclick=i.onkeydown=null;res(v)};
  $('mo').onclick=()=>done(val===undefined?true:i.value);$('mc').onclick=()=>done(null);i.onkeydown=e=>{if(e.key==='Enter')done(i.value)}})}
 const LT={publiek:{c:'#000',w:8,d:[16,12],p:18},publiek_solid:{c:'#000',w:8,p:18},prive:{l:'PRIVÉ',c:'#A0522D',w:6,d:[16,12],p:14},gevel:{l:'GEVEL',c:'#7030A0',w:6,p:14},gem_zicht:{c:'#00B050',w:6,p:14},gem_niet:{c:'#00B050',w:6,d:[14,10],p:14},ind_zicht:{c:'#FFC000',w:3,p:7},ind_niet:{c:'#FFC000',w:3,d:[10,7],p:7}};
-const SYM={intrede_onder:{l:'Ondergronds',k:'tri',c:'#1E88E5'},intrede_boven:{l:'Bovengronds',k:'tri',c:'#7030A0'},verdeelpunt:{l:'Verdeelpunt',k:'dia',c:'#FFE600'},verdeeldoos:{k:'sq',c:'#00B050'},ftu:{l:'FTU',k:'sq',c:'#FFC000'},boorgat:{l:'Boorgat',k:'ci',c:'#E00000',top:1},LU:{l:'LU',k:'lab',c:'#FFE600',t:'LU'},BU:{l:'BU',k:'lab',c:'#FFE600',t:'BU'}};
+const SYM={intrede_onder:{l:'Ondergronds',k:'tri',c:'#1E88E5'},intrede_boven:{l:'Bovengronds',k:'tri',c:'#7030A0'},verdeelpunt:{l:'Verdeelpunt',k:'dia',c:'#FFE600'},verdeeldoos:{l:'Verdeeldoos',k:'sq',c:'#00B050'},ftu:{l:'FTU',k:'sq',c:'#FFC000'},boorgat:{l:'Boorgat',k:'ci',c:'#E00000',top:1},LU:{l:'LU',k:'lab',c:'#FFE600',t:'LU'},BU:{l:'BU',k:'lab',c:'#FFE600',t:'BU'}};
 const YT=[['WACHTBUIS','Wachtbuis aanwezig'],['SLEUF','sleuf']];
 let imgs=[],idx=-1,tool='select',lt='publiek',pend=null,sel=null,shape=null,dirty=false;
 const scenes={},hist={},E='[]';
@@ -215,290 +214,95 @@ let at=0;function autosave(){clearTimeout(at);at=setTimeout(()=>dbSet(imgs.lengt
 function save(){const m=imgs[idx];if(m){scenes[m.id]=JSON.stringify(kids().map(n=>{try{return n.toJSON()}catch(e){return null}}).filter(Boolean))}autosave()}
 const cmp=(a,b)=>(a.name||'').localeCompare(b.name||'',undefined,{numeric:true,sensitivity:'base'});
 const nid=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-
-function cleanStr(s) {
-    return (s || '').replace(/\u0000/g, '').replace(/\s+/g, ' ').trim();
+function parseNote(u){
+const dec=(a)=>{try{return new TextDecoder('utf-8').decode(a)}catch(e){return String.fromCharCode.apply(null,Array.from(a))}};
+const clean=s=>(s||'').replace(/\u0000/g,'').replace(/\s+/g,' ').trim();
+const res={};
+try{
+if(u[0]===0xFF&&u[1]===0xD8){
+let p=2;
+while(p+4<u.length){
+if(u[p]!==0xFF){p++;continue}
+const t=u[p+1];
+if(t===0xFF){p++;continue}
+if(t===0xDA||t===0xD9)break;
+if(t>=0xD0&&t<=0xD8||t===0x01){p+=2;continue}
+const len=(u[p+2]<<8)|u[p+3],s=p+4,e=Math.min(p+2+len,u.length);
+if(t===0xE1){
+ if(u[s]===0x45&&u[s+1]===0x78&&u[s+2]===0x69&&u[s+3]===0x66)exif(u,s+6,e,res);
+ else{const h=dec(u.subarray(s,Math.min(s+29,e)));if(h.indexOf('http://ns.adobe.com/xap/1.0/')===0)xmp(dec(u.subarray(s+29,e)),res)}
+}else if(t===0xED){iptc(u,s,e,res)}
+p=p+2+len;
+}
+}else{xmp(Array.from(u.subarray(0,Math.min(u.length,600000))).map(c=>String.fromCharCode(c)).join(''),res)}
+}catch(err){}
+return clean(res.iptc||res.xmp||res.desc||res.user||res.xp||'');
+function xmp(x,r){
+ let m=x.match(/<dc:description[^>]*>[\s\S]*?<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>/);
+ if(!m)m=x.match(/dc:description\s*=\s*"([^"]*)"/);
+ if(m&&m[1]){r.xmp=m[1].replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&')}
+}
+function iptc(u,s,e,r){
+ const sig='Photoshop 3.0';let ok=true;for(let i=0;i<sig.length;i++)if(u[s+i]!==sig.charCodeAt(i))ok=false;if(!ok)return;
+ let q=s+14;
+ while(q+12<=e){
+  if(!(u[q]===0x38&&u[q+1]===0x42&&u[q+2]===0x49&&u[q+3]===0x4D))break;
+  const id=(u[q+4]<<8)|u[q+5];let nl=u[q+6];let off=q+6+1+nl;if((1+nl)%2)off++;
+  const size=(u[off]<<24|u[off+1]<<16|u[off+2]<<8|u[off+3])>>>0;off+=4;
+  if(id===0x0404){
+   let k=off;const end=off+size;
+   while(k+5<=end){
+    if(u[k]!==0x1C){k++;continue}
+    const rec=u[k+1],ds=u[k+2],l=(u[k+3]<<8)|u[k+4];
+    if(rec===2&&ds===120){r.iptc=dec(u.subarray(k+5,k+5+l))}
+    k+=5+l;
+   }
+  }
+  q=off+size+(size%2);
+ }
+}
+function exif(u,t,e,r){
+ const le=u[t]===0x49;
+ const g16=o=>le?(u[o]|u[o+1]<<8):(u[o]<<8|u[o+1]);
+ const g32=o=>(le?(u[o]|u[o+1]<<8|u[o+2]<<16|u[o+3]<<24):(u[o]<<24|u[o+1]<<16|u[o+2]<<8|u[o+3]))>>>0;
+ const ifd=(o,exifSub)=>{
+  const n=g16(t+o);
+  for(let i=0;i<n;i++){
+   const en=t+o+2+i*12,tag=g16(en),cnt=g32(en+4);
+   const vo=cnt<=4?en+8:t+g32(en+8);
+   if(vo+cnt>u.length)continue;
+   if(tag===0x010E&&!exifSub)r.desc=dec(u.subarray(vo,vo+cnt));
+   else if(tag===0x9C9C&&!exifSub){let s='';for(let k=0;k+1<cnt;k+=2)s+=String.fromCharCode(u[vo+k]|u[vo+k+1]<<8);r.xp=s}
+   else if(tag===0x9286&&exifSub&&cnt>8)r.user=dec(u.subarray(vo+8,vo+cnt));
+   else if(tag===0x8769&&!exifSub){ifd(g32(en+8),true)}
+  }
+ };
+ ifd(g32(t+4),false);
+}
 }
 
-function parseNote(u, debug) {
-  const dec=(a)=>{try{return new TextDecoder('utf-8').decode(a)}catch(e){return String.fromCharCode.apply(null,Array.from(a))}};
-  const dec16=(a)=>{try{return new TextDecoder('utf-16le').decode(a)}catch(e){let s='';for(let i=0;i+1<a.length;i+=2)s+=String.fromCharCode(a[i]|a[i+1]<<8);return s}};
-  const res={ allStrings: [] };
-
-  let exifBlock = null, iptcBlock = null;
-
-  try {
-    if(u[0]===0xFF&&u[1]===0xD8){
-      let p=2;
-      while(p+4<u.length){
-        if(u[p]!==0xFF){p++;continue}
-        const t=u[p+1];
-        if(t===0xFF){p++;continue}
-        if(t===0xDA||t===0xD9)break;
-        if(t>=0xD0&&t<=0xD8||t===0x01){p+=2;continue}
-        const len=(u[p+2]<<8)|u[p+3], s=p+4, e=Math.min(p+2+len,u.length);
-        
-        if(t===0xE1){
-          if(u[s]===0x45&&u[s+1]===0x78&&u[s+2]===0x69&&u[s+3]===0x66) {
-             exifBlock = u.subarray(s, e);
-             exif(u,s+6,e,res);
-          }
-        } else if(t===0xED){
-          iptcBlock = u.subarray(s, e);
-          iptc(u,s,e,res);
-        }
-        p=p+2+len;
-      }
-    }
-  } catch(err) { console.warn('Metadata parse error:', err); }
-
-  // Als we niets hebben gevonden via de standaard tags, scannen we het Exif en IPTC blok.
-  if (!res.iptcCaption && !res.xmpDesc && !res.desc && !res.user) {
-      const scan = (block) => {
-          if (!block || block.length < 10) return null;
-          const strings = [];
-          
-          // UTF-8 / ASCII
-          let start = -1;
-          for (let i = 0; i <= block.length; i++) {
-              const b = i < block.length ? block[i] : 0;
-              if ((b >= 32 && b <= 126) || b === 10 || b === 13) {
-                  if (start === -1) start = i;
-              } else {
-                  if (start !== -1) {
-                      if (i - start >= 8) strings.push(dec(block.subarray(start, i)));
-                      start = -1;
-                  }
-              }
-          }
-          
-          // UTF-16LE
-          start = -1;
-          for (let i = 0; i < block.length - 1; i += 2) {
-              const b1 = block[i], b2 = block[i+1];
-              if (b2 === 0 && (b1 >= 32 && b1 <= 126)) {
-                  if (start === -1) start = i;
-              } else {
-                  if (start !== -1) {
-                      if (i - start >= 10) strings.push(dec16(block.subarray(start, i)));
-                      start = -1;
-                  }
-              }
-          }
-
-          const ignore = /bplist|xml|xpacket|http|jfif|exif|icc|photoshop|apple|jpg|jpeg|tiff|adobe|profile|binary|maker|camera|lens|f\/|\bmm\b|\biso\b|focal|exposure|aperture|shutter|speed|brightness|flash|white|balance|gps|latitude|longitude|altitude|ipad|iphone|generation|wide|dual|front|back|composite/i;
-          
-          const valid = strings.filter(s => {
-              const t = s.trim();
-              if (t.length < 8) return false;
-              if (ignore.test(t)) return false;
-              if (!t.includes(' ') && t.length < 15) return false; // Moet een zin zijn
-              return true;
-          });
-          
-          valid.sort((a,b) => b.length - a.length);
-          return valid.length > 0 ? valid[0] : null;
-      };
-
-      const exifStr = scan(exifBlock);
-      const iptcStr = scan(iptcBlock);
-      
-      if (iptcStr && iptcStr.length > 10) res.fallback = iptcStr;
-      else if (exifStr) res.fallback = exifStr;
-  }
-
-  if(debug) return res;
-  return cleanStr(res.iptcCaption||res.xmpDesc||res.desc||res.user||res.fallback||'');
-
-  function iptc(u,s,e,r){
-    const sig='Photoshop 3.0';let ok=true;
-    for(let i=0;i<sig.length;i++)if(u[s+i]!==sig.charCodeAt(i))ok=false;
-    if(!ok)return;
-    let q=s+14;
-    while(q+12<=e){
-      if(!(u[q]===0x38&&u[q+1]===0x42&&u[q+2]===0x49&&u[q+3]===0x4D))break;
-      const id=(u[q+4]<<8)|u[q+5];let nl=u[q+6];let off=q+6+1+nl;if((1+nl)%2)off++;
-      const size=(u[off]<<24|u[off+1]<<16|u[off+2]<<8|u[off+3])>>>0;off+=4;
-      if(id===0x0404){
-        let k=off;const end=off+size;
-        while(k+5<=end){
-          if(u[k]!==0x1C){k++;continue}
-          const rec=u[k+1],ds=u[k+2],l=(u[k+3]<<8)|u[k+4];
-          if(rec===2&&ds===120){r.iptcCaption=dec(u.subarray(k+5,k+5+l))}
-          else if(rec===2&&ds===5){if(!r.iptcCaption)r.iptcCaption=dec(u.subarray(k+5,k+5+l))}
-          k+=5+l;
-        }
-      }
-      q=off+size+(size%2);
-    }
-  }
-
-  function exif(u,t,e,r){
-    const le=u[t]===0x49;
-    const g16=o=>le?(u[o]|u[o+1]<<8):(u[o]<<8|u[o+1]);
-    const g32=o=>(le?(u[o]|u[o+1]<<8|u[o+2]<<16|u[o+3]<<24):(u[o]<<24|u[o+1]<<16|u[o+2]<<8|u[o+3]))>>>0;
-    
-    const ifd=(o,exifSub)=>{
-      try {
-        const n=g16(t+o);
-        for(let i=0;i<n;i++){
-          const en=t+o+2+i*12,tag=g16(en),type=g16(en+2),cnt=g32(en+4);
-          const vo=cnt<=4?en+8:t+g32(en+8);
-          if(vo<0 || vo+cnt>u.length)continue;
-          
-          if(type===2 || type===1) {
-             if(cnt>2 && cnt<200) {
-                 let s = (tag===0x9C9C || tag===0x9C9B) ? dec16(u.subarray(vo,vo+cnt)) : dec(u.subarray(vo,vo+cnt)).replace(/\u0000/g,'');
-                 if(s.trim().length>0) r.allStrings.push(tag.toString(16).toUpperCase()+'="'+s.trim()+'"');
-             }
-          }
-
-          if(tag===0x010E && !exifSub) {
-            r.desc = dec(u.subarray(vo,vo+cnt));
-          }
-          else if(tag===0x9286 && exifSub && cnt>8) {
-            const prefix = dec(u.subarray(vo, vo+8));
-            let txt = '';
-            if(prefix.startsWith('UNICODE') || prefix.startsWith('Unicode')) {
-               txt = dec16(u.subarray(vo+8, vo+cnt));
-            } else if (prefix.startsWith('ASCII')) {
-               txt = dec(u.subarray(vo+8, vo+cnt));
-            } else {
-               txt = dec(u.subarray(vo, vo+cnt));
-               if(txt.includes('\u0000')) txt = dec16(u.subarray(vo, vo+cnt));
-            }
-            r.user = txt.replace(/[^\x20-\x7E\u00A0-\uFFFF]/g, '');
-          }
-          else if(tag===0x8769 && !exifSub) {
-            ifd(g32(en+8), true);
-          }
-        }
-      } catch(err) {}
-    };
-    ifd(g32(t+4), false);
-  }
-}
-
-async function readNote(blob){
-  const sl=blob.slice(0,2500000);
-  let buf;
-  if(sl.arrayBuffer) buf=await sl.arrayBuffer();
-  else buf=await new Promise((ok,no)=>{const f=new FileReader();f.onload=()=>ok(f.result);f.onerror=no;f.readAsArrayBuffer(sl)});
-  return parseNote(new Uint8Array(buf));
-}
-
-const tryImg=b=>new Promise(res=>{const u=URL.createObjectURL(b),im=new Image();im.onload=()=>res({img:im,url:u,blob:b});im.onerror=()=>{URL.revokeObjectURL(u);res(null)};im.src=u});
-async function shrink(src,w,h,max){const s=Math.min(1,max/Math.max(w,h)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(w*s));c.height=Math.max(1,Math.round(h*s));const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.imageSmoothingQuality='high';x.drawImage(src,0,0,c.width,c.height);const nb=await new Promise(ok=>c.toBlob(ok,'image/jpeg',.92));c.width=c.height=1;return nb}
-const loadScript=s=>new Promise((ok,no)=>{const e=document.createElement('script');e.src=s;e.onload=ok;e.onerror=()=>no(new Error('script'));document.head.appendChild(e)});
-async function isHeic(b){if(/hei[cf]/i.test((b.type||'')+' '+(b.name||'')))return true;try{const a=new Uint8Array(await b.slice(0,16).arrayBuffer());const t=String.fromCharCode(a[4],a[5],a[6],a[7],a[8],a[9],a[10],a[11]);return /^ftyp(hei|hev|mif|msf)/.test(t)}catch(e){return false}}
-let lastErr='';
-async function heicToJpeg(b){
-try{if(!window.HeicTo)await loadScript('https://cdn.jsdelivr.net/npm/heic-to@1.4.2/dist/iife/heic-to.js');const o=await HeicTo({blob:b,type:'image/jpeg',quality:.92});if(o)return o}catch(e){lastErr='A:'+(e&&e.message||e)}
-try{if(!window.heic2any)await loadScript('https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js');const o=await heic2any({blob:b,toType:'image/jpeg',quality:.92});return Array.isArray(o)?o[0]:o}catch(e){lastErr+=' B:'+(e&&e.message||e)}
-return null}
-async function loadImg(blob){
-  let note='';
-  try{
-    note=await Promise.race([readNote(blob),new Promise(q=>setTimeout(()=>q(''),8000))]);
-  }catch(e){}
-  
-  let r=await tryImg(blob);
-  if(!r&&await isHeic(blob)){
-    try{const jb=await heicToJpeg(blob);if(jb)r=await tryImg(jb)}catch(e){}
-  }
-  if(!r&&window.createImageBitmap){
-    try{const bm=await createImageBitmap(blob);const nb=await shrink(bm,bm.width,bm.height,4096);if(bm.close)bm.close();if(nb)r=await tryImg(nb)}catch(e){}
-  }
-  if(!r)return null;
-  if(Math.max(r.img.naturalWidth,r.img.naturalHeight)>4096){
-    try{const nb=await shrink(r.img,r.img.naturalWidth,r.img.naturalHeight,4096);const r2=nb&&await tryImg(nb);if(r2){URL.revokeObjectURL(r.url);r.img=r2.img;r.url=r2.url;r.blob=nb}}catch(e){}
-  }
-  
-  r.note=note||'';return r;
-}
-async function addFiles(files){
-  if(!files.length)return;files.sort(cmp);const items=[],failed=[];
-  for(const f of files){
-    let r=null;try{r=await loadImg(f)}catch(e){}
-    if(r)items.push({id:nid(),name:f.name,blob:r.blob||f,img:r.img,url:r.url,w:r.img.naturalWidth,h:r.img.naturalHeight,note:r.note||''});
-    else failed.push(f);
-  }
-  if(failed.length){
-    const ty=[...new Set(failed.map(f=>f.type||(f.name.split('.').pop()||'?')))].join(', ');
-    let t=(failed.length===1?'1 foto kon niet geopend worden':failed.length+' foto’s konden niet geopend worden')+' ('+ty+')';
-    if(/hei[cf]/i.test(ty+failed.map(f=>f.name).join()))t+=' – HEIC omzetten lukte niet ['+String(lastErr).slice(0,90)+']. Controleer internet (eenmalig nodig) of zet de camera op JPEG';
-    toast(t,'err');
-  }
-  if(!items.length)return;
-  const curId=imgs[idx]&&imgs[idx].id;
-  if(curId){select(null);save()}
-  items.forEach(m=>{scenes[m.id]=E;hist[m.id]={past:[E],future:[]}});
-  imgs=imgs.concat(items).sort(cmp);
-  idx=curId?imgs.findIndex(m=>m.id===curId):0;
-  show(idx);autosave();
-  const nn=items.filter(m=>m.note).length;
-  if(!failed.length)toast(nn?nn+(nn===1?' opmerking gevonden':' opmerkingen gevonden'):'Geen opmerking in foto gevonden');
-}
-function show(i){
-  idx=i;const m=imgs[i];const mt=$('meta');
-  if(!m){
-    mt.textContent='';mt.style.display='none';$('cw').style.setProperty('--mh','0px');
-    fit();apply(E);$('cn').textContent='–';$('sp').classList.remove('hidden');
-  } else {
-    mt.textContent=m.note||'';mt.style.display=m.note?'block':'none';$('cw').style.setProperty('--mh',(m.note?mt.offsetHeight:0)+'px');
-    fit();apply(scenes[m.id]||E);$('cn').textContent=m.name||'–';$('sp').classList.add('hidden');
-  }
-  $('info').textContent=imgs.length?(idx+1)+' / '+imgs.length:'– / –';
-  thumbs();updUR();
-}
+async function readNote(blob){const sl=blob.slice(0,1500000);let buf;if(sl.arrayBuffer)buf=await sl.arrayBuffer();else buf=await new Promise((ok,no)=>{const f=new FileReader();f.onload=()=>ok(f.result);f.onerror=no;f.readAsArrayBuffer(sl)});return parseNote(new Uint8Array(buf))}
+async function loadImg(blob){const u=URL.createObjectURL(blob),im=new Image();const img=await new Promise(res=>{im.onload=()=>res(im);im.onerror=()=>res(null);im.src=u});if(!img){URL.revokeObjectURL(u);return null}let note='';try{note=await Promise.race([readNote(blob),new Promise(r=>setTimeout(()=>r(''),3000))])}catch(e){}return{img:img,url:u,note:note||''}}
+async function addFiles(files){if(!files.length)return;files.sort(cmp);const items=(await Promise.all(files.map(async f=>{const r=await loadImg(f);return r&&{id:nid(),name:f.name,blob:f,img:r.img,url:r.url,w:r.img.naturalWidth,h:r.img.naturalHeight,note:r.note||''}}))).filter(Boolean);const fails=files.length-items.length;if(fails)toast(fails+" foto('s) kon niet geopend worden",'err');if(!items.length)return;const curId=imgs[idx]&&imgs[idx].id;if(curId){select(null);save()}items.forEach(m=>{scenes[m.id]=E;hist[m.id]={past:[E],future:[]}});imgs=imgs.concat(items).sort(cmp);idx=curId?imgs.findIndex(m=>m.id===curId):0;show(idx);autosave();const nn=items.filter(m=>m.note).length;if(!fails)toast(nn?nn+' opmerking(en) gevonden':'Geen opmerking in foto gevonden')}
+function show(i){idx=i;const m=imgs[i];const mt=$('meta');if(!m){mt.textContent='';mt.style.display='none';$('cw').style.setProperty('--mh','0px');fit();apply(E);$('cn').textContent='–';$('sp').classList.remove('hidden')}else{mt.textContent=m.note||'';mt.style.display=m.note?'block':'none';$('cw').style.setProperty('--mh',(m.note?mt.offsetHeight:0)+'px');fit();apply(scenes[m.id]||E);$('cn').textContent=m.name||'–';$('sp').classList.add('hidden')}$('info').textContent=imgs.length?(idx+1)+' / '+imgs.length:'– / –';thumbs();updUR()}
 function thumbs(){const t=$('th');t.innerHTML='';imgs.forEach((m,i)=>{const b=document.createElement('button');b.className='tn'+(i===idx?' on':'');b.textContent=i+1;b.title=m.name;b.onclick=()=>go(i);t.appendChild(b)});const has=imgs.length>0;['pv','nx','ex','rm','rl','rr'].forEach(k=>$(k).disabled=!has)}
 function go(i){if(!imgs.length||i===idx)return;select(null);save();show(i)}
 const step=d=>imgs.length&&go((idx+d+imgs.length)%imgs.length);
 $('pv').onclick=()=>step(-1);$('nx').onclick=()=>step(1);
 $('ad').onclick=$('sp').onclick=()=>$('fi').click();
-async function rotatePhoto(dir){
-  const m=imgs[idx];if(!m)return;select(null);toast('Draaien…');try{
-    const old=LH,k=LW/old,sw=m.img.naturalWidth,sh=m.img.naturalHeight;
-    const c=document.createElement('canvas');c.width=sh;c.height=sw;const x=c.getContext('2d');
-    if(dir>0){x.translate(sh,0);x.rotate(Math.PI/2)}else{x.translate(0,sw);x.rotate(-Math.PI/2)}
-    x.drawImage(m.img,0,0);
-    const blob=await new Promise((ok,no)=>c.toBlob(b=>b?ok(b):no(new Error('canvas')),'image/jpeg',.95));c.width=c.height=1;
-    const r=await loadImg(blob);if(!r)throw new Error('laden');
-    const mp=dir>0?(a,b)=>({x:LW-k*b,y:k*a}):(a,b)=>({x:k*b,y:LW*LW/old-k*a});
-    kids().forEach(n=>{
-      if(n.className==='Line'||n.className==='Arrow'){
-        const T=n.getTransform(),a=n.points(),s=(Math.abs(n.scaleX())+Math.abs(n.scaleY()))/2,np=[];
-        for(let i=0;i<a.length;i+=2){const q=T.point({x:a[i],y:a[i+1]}),o=mp(q.x,q.y);np.push(o.x,o.y)}
-        const at={x:0,y:0,rotation:0,scaleX:1,scaleY:1,offsetX:0,offsetY:0,skewX:0,skewY:0,points:np,strokeWidth:n.strokeWidth()*s};
-        const d=n.dash();if(d&&d.length)at.dash=d.map(v=>v*s);
-        if(n.className==='Arrow'){at.pointerLength=n.pointerLength()*s;at.pointerWidth=n.pointerWidth()*s}
-        const hs=n.hitStrokeWidth();if(typeof hs==='number'&&hs>0)at.hitStrokeWidth=hs*s;
-        n.setAttrs(at);
-      } else {
-        const o=mp(n.x(),n.y());n.setAttrs({x:o.x,y:o.y,rotation:n.rotation()+(dir>0?90:-90)});
-      }
-    });
-    const j=JSON.stringify(kids().map(n=>n.toJSON()));
-    URL.revokeObjectURL(m.url);m.blob=blob;m.img=r.img;m.url=r.url;m.w=r.img.naturalWidth;m.h=r.img.naturalHeight;
-    scenes[m.id]=j;hist[m.id]={past:[j],future:[]};show(idx);autosave();toast('Foto gedraaid');
-  }catch(e){toast('Draaien mislukt','err')}
-}
-const VER='v2.1';$('ver').textContent='Project Flow '+VER;
-function segList(u){const o=[];if(!(u[0]===0xFF&&u[1]===0xD8))return null;let p=2;while(p+4<u.length&&o.length<40){if(u[p]!==0xFF){p++;continue}const t=u[p+1];if(t===0xFF){p++;continue}if(t===0xDA||t===0xD9)break;if(t>=0xD0&&t<=0xD8||t===1){p+=2;continue}const len=(u[p+2]<<8)|u[p+3];let id='';for(let i=0;i<14&&p+4+i<u.length;i++){const c=u[p+4+i];id+=c>=32&&c<127?String.fromCharCode(c):''}let name='';if(t>=0xE0&&t<=0xEF)name='APP'+(t-0xE0);else if(t===0xFE)name='COM';else name='0x'+t.toString(16).toUpperCase();o.push(name+' '+id.slice(0,13).trim()+' ('+len+'B)');p+=2+len}return o}
-async function showDiag(){
-  const m=imgs[idx];let t='Project Flow '+VER+'\n';
-  if(!m){t+='\nGeen foto geopend.'} else {
-    const b=m.blob;let u=new Uint8Array(0);
-    try{u=new Uint8Array(await b.slice(0,2500000).arrayBuffer())}catch(e){t+='\nLezen mislukt: '+e.message+'\n'}
-    const dbg = parseNote(u, true);
-    const finalNote = cleanStr(dbg.iptcCaption||dbg.xmpDesc||dbg.desc||dbg.user||dbg.fallback||'');
-    t+='\nBestand: '+m.name+'\nType: '+(b.type||'?')+'\nGrootte: '+Math.round(b.size/1024)+' KB\nAfmeting: '+m.w+' x '+m.h+'\nOpmerking in app: '+(m.note?'"'+m.note+'"':'GEEN')+'\nOpnieuw uitlezen: '+(finalNote?'"'+finalNote+'"':'GEEN')+'\n';
-    t+='\nGevonden EXIF tekst:\n'+(dbg.allStrings&&dbg.allStrings.length?dbg.allStrings.join('\n'):'Geen')+'\n';
-    const sg=segList(u);t+='\nOnderdelen in bestand:\n'+(sg?sg.join('\n'):'(geen JPEG, begin: '+Array.from(u.subarray(0,12)).map(c=>c.toString(16).padStart(2,'0')).join(' ')+')');
-  }
-  let d=$('dg');if(d)d.remove();d=document.createElement('div');d.id='dg';d.style.cssText='position:fixed;inset:0;z-index:100000;background:#000e;color:#fff;padding:16px;display:flex;flex-direction:column;gap:10px;font:12px/1.4 monospace';const pre=document.createElement('pre');pre.style.cssText='flex:1;overflow:auto;white-space:pre-wrap;margin:0;word-break:break-all';pre.textContent=t;const bar=document.createElement('div');bar.style.cssText='display:flex;gap:10px';const mk=(l,f)=>{const q=document.createElement('button');q.textContent=l;q.className='bt';q.style.cssText='padding:12px 20px;font-size:14px';q.onclick=f;bar.appendChild(q)};mk('Sluiten',()=>d.remove());mk('Kopieer',()=>{try{navigator.clipboard.writeText(t);toast('Gekopieerd')}catch(e){}});d.append(pre,bar);document.body.appendChild(d)
-}
-$('ib').onclick=showDiag;
+async function rotatePhoto(dir){const m=imgs[idx];if(!m)return;select(null);toast('Draaien…');try{
+const old=LH,k=LW/old,sw=m.img.naturalWidth,sh=m.img.naturalHeight;
+const c=document.createElement('canvas');c.width=sh;c.height=sw;const x=c.getContext('2d');if(dir>0){x.translate(sh,0);x.rotate(Math.PI/2)}else{x.translate(0,sw);x.rotate(-Math.PI/2)}x.drawImage(m.img,0,0);
+const blob=await new Promise((ok,no)=>c.toBlob(b=>b?ok(b):no(new Error('canvas')),'image/jpeg',.95));c.width=c.height=1;
+const r=await loadImg(blob);if(!r)throw new Error('laden');
+const mp=dir>0?(a,b)=>({x:LW-k*b,y:k*a}):(a,b)=>({x:k*b,y:LW*LW/old-k*a});
+kids().forEach(n=>{if(n.className==='Line'||n.className==='Arrow'){const T=n.getTransform(),a=n.points(),s=(Math.abs(n.scaleX())+Math.abs(n.scaleY()))/2,np=[];for(let i=0;i<a.length;i+=2){const q=T.point({x:a[i],y:a[i+1]}),o=mp(q.x,q.y);np.push(o.x,o.y)}
+const at={x:0,y:0,rotation:0,scaleX:1,scaleY:1,offsetX:0,offsetY:0,skewX:0,skewY:0,points:np,strokeWidth:n.strokeWidth()*s};const d=n.dash();if(d&&d.length)at.dash=d.map(v=>v*s);
+if(n.className==='Arrow'){at.pointerLength=n.pointerLength()*s;at.pointerWidth=n.pointerWidth()*s}const hs=n.hitStrokeWidth();if(typeof hs==='number'&&hs>0)at.hitStrokeWidth=hs*s;n.setAttrs(at)}
+else{const o=mp(n.x(),n.y());n.setAttrs({x:o.x,y:o.y,rotation:n.rotation()+(dir>0?90:-90)})}});
+const j=JSON.stringify(kids().map(n=>n.toJSON()));
+URL.revokeObjectURL(m.url);m.blob=blob;m.img=r.img;m.url=r.url;m.w=r.img.naturalWidth;m.h=r.img.naturalHeight;
+scenes[m.id]=j;hist[m.id]={past:[j],future:[]};show(idx);autosave();toast('Foto gedraaid')}catch(e){toast('Draaien mislukt','err')}}
 $('rl').onclick=()=>rotatePhoto(-1);$('rr').onclick=()=>rotatePhoto(1);
 
 $('fi').onchange=async e=>{try{await addFiles([...e.target.files])}catch(err){toast('Uploaden mislukt: '+(err&&err.message||err),'err')}e.target.value=''};
@@ -521,11 +325,12 @@ $('ea').onclick=async()=>{if(!imgs.length)return;const keepI=idx,files=[],used={
 $('bk').onclick=async()=>{try{save();const rd=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});const o={app:'Project Flow',v:1,scenes:scenes,imgs:await Promise.all(imgs.map(async m=>({id:m.id,name:m.name,w:m.w,h:m.h,note:m.note||'',d:await rd(m.blob)})))};await deliver([new File([JSON.stringify(o)],'ProjectFlow-backup-'+new Date().toISOString().slice(0,10)+'.json',{type:'application/json'})])}catch(e){toast('Back-up mislukt','err')}};
 $('bl').onclick=()=>$('bf').click();
 $('bf').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;const d=JSON.parse(await f.text());if(!d.imgs)throw 0;const out=[];for(const it of d.imgs){const b=await (await fetch(it.d)).blob(),r=await loadImg(b);if(r)out.push({id:it.id,name:it.name,blob:b,w:it.w,h:it.h,img:r.img,url:r.url,note:it.note||r.note||''})}imgs.forEach(m=>URL.revokeObjectURL(m.url));imgs=out;for(const m of imgs){scenes[m.id]=(d.scenes||{})[m.id]||E;hist[m.id]={past:[scenes[m.id]],future:[]}}show(0);autosave();toast('Back-up geladen')}catch(x){toast('Ongeldig bestand','err')}e.target.value=''};
-if('serviceWorker' in navigator&&location.protocol==='https:'){const had=!!navigator.serviceWorker.controller;navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!had)return;if(!imgs.length)location.reload();else toast('Nieuwe versie beschikbaar – sluit de app en open hem opnieuw','err')})}
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 size();setTool('select');thumbs();
 (async()=>{const d=await dbGet();if(!d||!d.imgs||!d.imgs.length)return;const out=[];for(const it of d.imgs){const r=await loadImg(it.blob);if(r)out.push({id:it.id,name:it.name,blob:it.blob,w:it.w,h:it.h,img:r.img,url:r.url,note:it.note||r.note||''})}if(!out.length)return;imgs=out;for(const m of imgs){scenes[m.id]=(d.scenes||{})[m.id]||E;hist[m.id]={past:[scenes[m.id]],future:[]}}show(Math.min(Math.max(d.idx||0,0),imgs.length-1));toast('Vorige sessie hersteld')})();
-console.log('%cProject Flow v2.1 - (c) 2026 Project Flow','font-weight:bold');
+console.log('%cProject Flow v1.2 - (c) 2026 Project Flow','font-weight:bold');
 let _rt;new ResizeObserver(()=>{clearTimeout(_rt);_rt=setTimeout(()=>{const s=$('stage');if(Math.abs(s.clientWidth-W)>2||Math.abs(s.clientHeight-H)>2)fit()},120)}).observe($('stage'));
 })();
 </script>
+<script src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "57d14f6b495e4fc28f93415fcbd87ac8"}'></script>
 </body></html>
