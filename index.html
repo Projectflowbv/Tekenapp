@@ -225,6 +225,8 @@ function parseNote(u, debug) {
   const dec16=(a)=>{try{return new TextDecoder('utf-16le').decode(a)}catch(e){let s='';for(let i=0;i+1<a.length;i+=2)s+=String.fromCharCode(a[i]|a[i+1]<<8);return s}};
   const res={ allStrings: [] };
 
+  let exifBlock = null, iptcBlock = null;
+
   try {
     if(u[0]===0xFF&&u[1]===0xD8){
       let p=2;
@@ -238,30 +240,75 @@ function parseNote(u, debug) {
         
         if(t===0xE1){
           if(u[s]===0x45&&u[s+1]===0x78&&u[s+2]===0x69&&u[s+3]===0x66) {
+             exifBlock = u.subarray(s, e);
              exif(u,s+6,e,res);
-          } else {
-            const h=dec(u.subarray(s,Math.min(s+29,e)));
-            if(h.indexOf('http://ns.adobe.com/xap/1.0/')===0) xmp(dec(u.subarray(s+29,e)),res);
           }
         } else if(t===0xED){
+          iptcBlock = u.subarray(s, e);
           iptc(u,s,e,res);
         }
         p=p+2+len;
       }
     }
   } catch(err) { console.warn('Metadata parse error:', err); }
-  
-  if(debug) return res;
-  return cleanStr(res.iptcCaption||res.xmpDesc||res.desc||res.user||'');
 
-  function xmp(x,r){
-    let m=x.match(/<dc:description[^>]*>[\s\S]*?<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>/);
-    if(!m)m=x.match(/<dc:title[^>]*>[\s\S]*?<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>/);
-    if(!m)m=x.match(/<photoshop:Headline[^>]*>([\s\S]*?)<\/photoshop:Headline>/);
-    if(m&&m[1]){
-      r.xmpDesc = m[1].replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&');
-    }
+  // Als we niets hebben gevonden via de standaard tags, scannen we het Exif en IPTC blok.
+  if (!res.iptcCaption && !res.xmpDesc && !res.desc && !res.user) {
+      const scan = (block) => {
+          if (!block || block.length < 10) return null;
+          const strings = [];
+          
+          // UTF-8 / ASCII
+          let start = -1;
+          for (let i = 0; i <= block.length; i++) {
+              const b = i < block.length ? block[i] : 0;
+              if ((b >= 32 && b <= 126) || b === 10 || b === 13) {
+                  if (start === -1) start = i;
+              } else {
+                  if (start !== -1) {
+                      if (i - start >= 8) strings.push(dec(block.subarray(start, i)));
+                      start = -1;
+                  }
+              }
+          }
+          
+          // UTF-16LE
+          start = -1;
+          for (let i = 0; i < block.length - 1; i += 2) {
+              const b1 = block[i], b2 = block[i+1];
+              if (b2 === 0 && (b1 >= 32 && b1 <= 126)) {
+                  if (start === -1) start = i;
+              } else {
+                  if (start !== -1) {
+                      if (i - start >= 10) strings.push(dec16(block.subarray(start, i)));
+                      start = -1;
+                  }
+              }
+          }
+
+          const ignore = /bplist|xml|xpacket|http|jfif|exif|icc|photoshop|apple|jpg|jpeg|tiff|adobe|profile|binary|maker|camera|lens|f\/|\bmm\b|\biso\b|focal|exposure|aperture|shutter|speed|brightness|flash|white|balance|gps|latitude|longitude|altitude|ipad|iphone|generation|wide|dual|front|back|composite/i;
+          
+          const valid = strings.filter(s => {
+              const t = s.trim();
+              if (t.length < 8) return false;
+              if (ignore.test(t)) return false;
+              if (!t.includes(' ') && t.length < 15) return false; // Moet een zin zijn
+              return true;
+          });
+          
+          valid.sort((a,b) => b.length - a.length);
+          return valid.length > 0 ? valid[0] : null;
+      };
+
+      const exifStr = scan(exifBlock);
+      const iptcStr = scan(iptcBlock);
+      
+      if (iptcStr && iptcStr.length > 10) res.fallback = iptcStr;
+      else if (exifStr) res.fallback = exifStr;
   }
+
+  if(debug) return res;
+  return cleanStr(res.iptcCaption||res.xmpDesc||res.desc||res.user||res.fallback||'');
 
   function iptc(u,s,e,r){
     const sig='Photoshop 3.0';let ok=true;
@@ -436,7 +483,7 @@ async function rotatePhoto(dir){
     scenes[m.id]=j;hist[m.id]={past:[j],future:[]};show(idx);autosave();toast('Foto gedraaid');
   }catch(e){toast('Draaien mislukt','err')}
 }
-const VER='v2.0';$('ver').textContent='Project Flow '+VER;
+const VER='v2.1';$('ver').textContent='Project Flow '+VER;
 function segList(u){const o=[];if(!(u[0]===0xFF&&u[1]===0xD8))return null;let p=2;while(p+4<u.length&&o.length<40){if(u[p]!==0xFF){p++;continue}const t=u[p+1];if(t===0xFF){p++;continue}if(t===0xDA||t===0xD9)break;if(t>=0xD0&&t<=0xD8||t===1){p+=2;continue}const len=(u[p+2]<<8)|u[p+3];let id='';for(let i=0;i<14&&p+4+i<u.length;i++){const c=u[p+4+i];id+=c>=32&&c<127?String.fromCharCode(c):''}let name='';if(t>=0xE0&&t<=0xEF)name='APP'+(t-0xE0);else if(t===0xFE)name='COM';else name='0x'+t.toString(16).toUpperCase();o.push(name+' '+id.slice(0,13).trim()+' ('+len+'B)');p+=2+len}return o}
 async function showDiag(){
   const m=imgs[idx];let t='Project Flow '+VER+'\n';
@@ -444,7 +491,7 @@ async function showDiag(){
     const b=m.blob;let u=new Uint8Array(0);
     try{u=new Uint8Array(await b.slice(0,2500000).arrayBuffer())}catch(e){t+='\nLezen mislukt: '+e.message+'\n'}
     const dbg = parseNote(u, true);
-    const finalNote = cleanStr(dbg.iptcCaption||dbg.xmpDesc||dbg.desc||dbg.user||'');
+    const finalNote = cleanStr(dbg.iptcCaption||dbg.xmpDesc||dbg.desc||dbg.user||dbg.fallback||'');
     t+='\nBestand: '+m.name+'\nType: '+(b.type||'?')+'\nGrootte: '+Math.round(b.size/1024)+' KB\nAfmeting: '+m.w+' x '+m.h+'\nOpmerking in app: '+(m.note?'"'+m.note+'"':'GEEN')+'\nOpnieuw uitlezen: '+(finalNote?'"'+finalNote+'"':'GEEN')+'\n';
     t+='\nGevonden EXIF tekst:\n'+(dbg.allStrings&&dbg.allStrings.length?dbg.allStrings.join('\n'):'Geen')+'\n';
     const sg=segList(u);t+='\nOnderdelen in bestand:\n'+(sg?sg.join('\n'):'(geen JPEG, begin: '+Array.from(u.subarray(0,12)).map(c=>c.toString(16).padStart(2,'0')).join(' ')+')');
@@ -477,7 +524,7 @@ $('bf').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;const d=JS
 if('serviceWorker' in navigator&&location.protocol==='https:'){const had=!!navigator.serviceWorker.controller;navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!had)return;if(!imgs.length)location.reload();else toast('Nieuwe versie beschikbaar – sluit de app en open hem opnieuw','err')})}
 size();setTool('select');thumbs();
 (async()=>{const d=await dbGet();if(!d||!d.imgs||!d.imgs.length)return;const out=[];for(const it of d.imgs){const r=await loadImg(it.blob);if(r)out.push({id:it.id,name:it.name,blob:it.blob,w:it.w,h:it.h,img:r.img,url:r.url,note:it.note||r.note||''})}if(!out.length)return;imgs=out;for(const m of imgs){scenes[m.id]=(d.scenes||{})[m.id]||E;hist[m.id]={past:[scenes[m.id]],future:[]}}show(Math.min(Math.max(d.idx||0,0),imgs.length-1));toast('Vorige sessie hersteld')})();
-console.log('%cProject Flow v2.0 - (c) 2026 Project Flow','font-weight:bold');
+console.log('%cProject Flow v2.1 - (c) 2026 Project Flow','font-weight:bold');
 let _rt;new ResizeObserver(()=>{clearTimeout(_rt);_rt=setTimeout(()=>{const s=$('stage');if(Math.abs(s.clientWidth-W)>2||Math.abs(s.clientHeight-H)>2)fit()},120)}).observe($('stage'));
 })();
 </script>
