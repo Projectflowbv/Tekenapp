@@ -36,11 +36,11 @@ button{font-family:inherit;touch-action:manipulation;user-select:none;-webkit-us
 .sb.on{border-color:var(--acc);background:#EAF2FB}.sb span{font-size:8px;color:#444;text-align:center;line-height:1.1}
 .sb.fl{background:#FFFDE7;border-color:#FFE082;min-height:40px;font-size:15px;font-weight:800;color:#8A6A00}.sb.fl.on{background:#FFF3C4;border-color:#B58500}
 .ss{grid-column:1/-1;height:1px;background:var(--line);margin:2px 0}
-#cw{flex:1;min-width:0;position:relative;overflow:hidden;background:#e9ecef;touch-action:none;user-select:none;-webkit-user-select:none}
+#cw{flex:1;min-width:0;position:relative;overflow:hidden;display:flex;flex-direction:column;background:#e9ecef;touch-action:none;user-select:none;-webkit-user-select:none}
 #sp{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;pointer-events:auto;cursor:pointer;z-index:1;padding:20px;text-align:center;color:#6b7280;font-size:14px}
 #sp img{width:min(70%,420px);border-radius:18px}
-#stage{position:absolute;left:0;right:0;top:0;bottom:var(--mh,0px);overflow:hidden}
-#meta{position:absolute;left:0;right:0;bottom:0;display:none;padding:8px 12px;background:#1c2024;color:#fff;font-size:13px;line-height:1.35;max-height:72px;overflow-y:auto;z-index:2}
+#stage{flex:1;min-height:0;position:relative;overflow:hidden}
+#meta{flex:none;display:none;padding:8px 12px;background:#1c2024;color:#fff;font-size:13px;line-height:1.35;max-height:72px;overflow-y:auto;position:relative;z-index:2}
 .bb{flex:none;display:flex;align-items:center;gap:6px;padding:6px 10px max(2px,calc(env(safe-area-inset-bottom) - 12px));background:#fff;border-top:1px solid var(--line)}
 .bt{border:1px solid var(--line);background:#fff;border-radius:8px;height:44px;min-width:50px;font-size:18px;font-weight:700;color:#333}
 .bt:disabled{opacity:.35}.bt.p{background:var(--brand);color:#fff;border-color:var(--brand)}.bt.a{background:var(--acc);color:#fff;font-size:22px}.bt.d{color:#C00000;border-color:#e8b5b5}
@@ -101,7 +101,7 @@ html.dk #sp img{border-radius:18px}
  </div>
  <div class="row" id="lr"></div>
 </div>
-<div id="main"><aside id="sb"></aside><main id="cw"><div id="sp"><img src="logo.png" alt="Project Flow"><div>Tik om foto's toe te voegen</div><div id="ver" style="margin-top:14px;font-size:11px;opacity:.55"></div></div><div id="stage"></div><div id="meta"></div></main></div>
+<div id="main"><aside id="sb"></aside><main id="cw"><div id="sp"><img src="logo.png" alt="Project Flow"><div>Tik om foto's toe te voegen</div></div><div id="stage"></div><div id="meta"></div></main></div>
 <div class="bb">
  <button id="ad" class="bt a">＋</button>
  <button id="pv" class="bt">←</button>
@@ -109,9 +109,6 @@ html.dk #sp img{border-radius:18px}
  <button id="zr" class="bt" title="Zoom herstellen">⤢</button>
  <button id="ex" class="bt p">📥</button>
  <button id="rm" class="bt d">🗑</button>
- <button id="rl" class="bt" title="Links draaien">↺</button>
- <button id="rr" class="bt" title="Rechts draaien">↻</button>
- <button id="ib" class="bt" title="Info over foto">ⓘ</button>
  <span id="info">– / –</span>
 </div>
 <aside id="pl" class="panel"><div class="ph"><span>Project Flow · Foto's</span><button class="x">✕</button></div><div class="pc">
@@ -144,13 +141,13 @@ html.dk #sp img{border-radius:18px}
 const $=id=>document.getElementById(id);
 if(!window.Konva){document.body.innerHTML='<h2 style="padding:40px">Konva niet geladen</h2>';return}
 Konva.pixelRatio=Math.min(devicePixelRatio||1,3);
-const toast=(m,t)=>{const e=document.createElement('div');e.className='toast '+(t||'');e.textContent=m;$('toasts').appendChild(e);setTimeout(()=>e.classList.add('show'),10);setTimeout(()=>{e.classList.remove('show');setTimeout(()=>e.remove(),300)},t==='err'?7000:3000)};
+const toast=(m,t)=>{const e=document.createElement('div');e.className='toast '+(t||'');e.textContent=m;$('toasts').appendChild(e);setTimeout(()=>e.classList.add('show'),10);setTimeout(()=>{e.classList.remove('show');setTimeout(()=>e.remove(),300)},3000)};
 function modal(title,val){return new Promise(res=>{const m=$('md'),i=$('mi');$('mt').textContent=title;i.classList.toggle('hidden',val===undefined);i.value=val||'';m.classList.remove('hidden');if(val!==undefined)setTimeout(()=>{i.focus();i.select()},50);
  const done=v=>{m.classList.add('hidden');$('mo').onclick=$('mc').onclick=i.onkeydown=null;res(v)};
  $('mo').onclick=()=>done(val===undefined?true:i.value);$('mc').onclick=()=>done(null);i.onkeydown=e=>{if(e.key==='Enter')done(i.value)}})}
 const LT={publiek:{c:'#000',w:8,d:[16,12],p:18},publiek_solid:{c:'#000',w:8,p:18},prive:{l:'PRIVÉ',c:'#A0522D',w:6,d:[16,12],p:14},gevel:{l:'GEVEL',c:'#7030A0',w:6,p:14},gem_zicht:{c:'#00B050',w:6,p:14},gem_niet:{c:'#00B050',w:6,d:[14,10],p:14},ind_zicht:{c:'#FFC000',w:3,p:7},ind_niet:{c:'#FFC000',w:3,d:[10,7],p:7}};
 const SYM={intrede_onder:{l:'Ondergronds',k:'tri',c:'#1E88E5'},intrede_boven:{l:'Bovengronds',k:'tri',c:'#7030A0'},verdeelpunt:{l:'Verdeelpunt',k:'dia',c:'#FFE600'},verdeeldoos:{l:'Verdeeldoos',k:'sq',c:'#00B050'},ftu:{l:'FTU',k:'sq',c:'#FFC000'},boorgat:{l:'Boorgat',k:'ci',c:'#E00000',top:1},LU:{l:'LU',k:'lab',c:'#FFE600',t:'LU'},BU:{l:'BU',k:'lab',c:'#FFE600',t:'BU'}};
-const YT=[['WACHTBUIS','Wachtbuis aanwezig'],['SLEUF','sleuf']];
+const YT=[['WACHTBUIS','Wachtbuis aanwezig'],['GLEUF','gleuf']];
 let imgs=[],idx=-1,tool='select',lt='publiek',pend=null,sel=null,shape=null,dirty=false;
 const scenes={},hist={},E='[]';
 let W=800,H=600,LW=1000,LH=750,base=1,zt=0;
@@ -161,7 +158,7 @@ const bg=new Konva.Image({listening:false});bgL.add(bg);
 const tf=new Konva.Transformer({rotationSnaps:[0,45,90,135,180,225,270,315],enabledAnchors:['top-left','top-right','bottom-left','bottom-right'],padding:4,borderStroke:'#0B4EA2',anchorSize:18,anchorCornerRadius:10,anchorStroke:'#0B4EA2',anchorFill:'#fff',rotateAnchorOffset:48,ignoreStroke:true});
 dl.add(tf);
 const kids=()=>dl.getChildren().filter(n=>n!==tf);
-function size(){const w=$('stage'),c=$('cw');W=Math.max(200,w.clientWidth||c.clientWidth);H=Math.max(200,w.clientHeight||c.clientHeight)};
+function size(){const w=$('stage');W=Math.max(200,w.clientWidth);H=Math.max(200,w.clientHeight)};
 function scaled(img,w,h){const pr=Math.min(devicePixelRatio||1,3),tw=Math.round(w*pr),th=Math.round(h*pr);let src=img,cw=img.naturalWidth,ch=img.naturalHeight;if(tw>=cw)return img;while(cw/2>tw){cw=Math.round(cw/2);ch=Math.round(ch/2);const c=document.createElement('canvas');c.width=cw;c.height=ch;const x=c.getContext('2d');x.imageSmoothingQuality='high';x.drawImage(src,0,0,cw,ch);src=c}const c=document.createElement('canvas');c.width=tw;c.height=th;const x=c.getContext('2d');x.imageSmoothingQuality='high';x.drawImage(src,0,0,tw,th);return c}
 function fit(){size();stage.size({width:W,height:H});const m=imgs[idx];if(!m){bg.image(null);bgL.batchDraw();return}LH=Math.round(LW*m.h/m.w);bg.setAttrs({x:0,y:0,width:LW,height:LH});home()}
 function select(n){sel=n;tf.nodes(n?[n]:[]);tf.visible(!!n);tf.moveToTop();dl.batchDraw();$('dl').disabled=!n}
@@ -235,7 +232,7 @@ if(t===0xE1){
 }else if(t===0xED){iptc(u,s,e,res)}
 p=p+2+len;
 }
-}else{const n=Math.min(u.length,1500000);for(let i=0;i+8<n;i++){if((u[i]===0x49&&u[i+1]===0x49&&u[i+2]===0x2A&&u[i+3]===0)||(u[i]===0x4D&&u[i+1]===0x4D&&u[i+2]===0&&u[i+3]===0x2A)){exif(u,i,n,res);if(res.desc||res.user||res.xp)break}}xmp(dec(u.subarray(0,n)),res)}
+}else{xmp(Array.from(u.subarray(0,Math.min(u.length,600000))).map(c=>String.fromCharCode(c)).join(''),res)}
 }catch(err){}
 return clean(res.iptc||res.xmp||res.desc||res.user||res.xp||'');
 function xmp(x,r){
@@ -282,60 +279,15 @@ function exif(u,t,e,r){
 }
 }
 
-async function readNote(blob){const sl=blob.slice(0,1500000);let buf;if(sl.arrayBuffer)buf=await sl.arrayBuffer();else buf=await new Promise((ok,no)=>{const f=new FileReader();f.onload=()=>ok(f.result);f.onerror=no;f.readAsArrayBuffer(sl)});return parseNote(new Uint8Array(buf))}
-const tryImg=b=>new Promise(res=>{const u=URL.createObjectURL(b),im=new Image();im.onload=()=>res({img:im,url:u,blob:b});im.onerror=()=>{URL.revokeObjectURL(u);res(null)};im.src=u});
-async function shrink(src,w,h,max){const s=Math.min(1,max/Math.max(w,h)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(w*s));c.height=Math.max(1,Math.round(h*s));const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.imageSmoothingQuality='high';x.drawImage(src,0,0,c.width,c.height);const nb=await new Promise(ok=>c.toBlob(ok,'image/jpeg',.92));c.width=c.height=1;return nb}
-const loadScript=s=>new Promise((ok,no)=>{const e=document.createElement('script');e.src=s;e.onload=ok;e.onerror=()=>no(new Error('script'));document.head.appendChild(e)});
-async function isHeic(b){if(/hei[cf]/i.test((b.type||'')+' '+(b.name||'')))return true;try{const a=new Uint8Array(await b.slice(0,16).arrayBuffer());const t=String.fromCharCode(a[4],a[5],a[6],a[7],a[8],a[9],a[10],a[11]);return /^ftyp(hei|hev|mif|msf)/.test(t)}catch(e){return false}}
-let lastErr='';
-async function heicToJpeg(b){
-try{if(!window.HeicTo)await loadScript('https://cdn.jsdelivr.net/npm/heic-to@1.4.2/dist/iife/heic-to.js');const o=await HeicTo({blob:b,type:'image/jpeg',quality:.92});if(o)return o}catch(e){lastErr='A:'+(e&&e.message||e)}
-try{if(!window.heic2any)await loadScript('https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js');const o=await heic2any({blob:b,toType:'image/jpeg',quality:.92});return Array.isArray(o)?o[0]:o}catch(e){lastErr+=' B:'+(e&&e.message||e)}
-return null}
-async function loadImg(blob){let note='';try{note=await Promise.race([readNote(blob),new Promise(q=>setTimeout(()=>q(''),15000))])}catch(e){}
-let r=await tryImg(blob);
-if(!r&&await isHeic(blob)){try{const jb=await heicToJpeg(blob);if(jb)r=await tryImg(jb)}catch(e){}}
-if(!r&&window.createImageBitmap){try{const bm=await createImageBitmap(blob);const nb=await shrink(bm,bm.width,bm.height,4096);if(bm.close)bm.close();if(nb)r=await tryImg(nb)}catch(e){}}
-if(!r)return null;
-if(Math.max(r.img.naturalWidth,r.img.naturalHeight)>4096){try{const nb=await shrink(r.img,r.img.naturalWidth,r.img.naturalHeight,4096);const r2=nb&&await tryImg(nb);if(r2){URL.revokeObjectURL(r.url);r.img=r2.img;r.url=r2.url;r.blob=nb}}catch(e){}}
-r.note=note||'';return r}
-async function addFiles(files){if(!files.length)return;files.sort(cmp);const items=[],failed=[];
-for(const f of files){let r=null;try{r=await loadImg(f)}catch(e){}
-if(r)items.push({id:nid(),name:f.name,blob:r.blob||f,img:r.img,url:r.url,w:r.img.naturalWidth,h:r.img.naturalHeight,note:r.note||''});else failed.push(f)}
-if(failed.length){const ty=[...new Set(failed.map(f=>f.type||(f.name.split('.').pop()||'?')))].join(', ');let t=(failed.length===1?'1 foto kon niet geopend worden':failed.length+' foto’s konden niet geopend worden')+' ('+ty+')';if(/hei[cf]/i.test(ty+failed.map(f=>f.name).join()))t+=' – HEIC omzetten lukte niet ['+String(lastErr).slice(0,90)+']. Controleer internet (eenmalig nodig) of zet de camera op JPEG';toast(t,'err')}
-if(!items.length)return;const curId=imgs[idx]&&imgs[idx].id;if(curId){select(null);save()}items.forEach(m=>{scenes[m.id]=E;hist[m.id]={past:[E],future:[]}});imgs=imgs.concat(items).sort(cmp);idx=curId?imgs.findIndex(m=>m.id===curId):0;show(idx);autosave();const nn=items.filter(m=>m.note).length;if(!failed.length)toast(nn?nn+(nn===1?' opmerking gevonden':' opmerkingen gevonden'):'Geen opmerking in foto gevonden')}
-function show(i){idx=i;const m=imgs[i];const mt=$('meta');if(!m){mt.textContent='';mt.style.display='none';$('cw').style.setProperty('--mh','0px');fit();apply(E);$('cn').textContent='–';$('sp').classList.remove('hidden')}else{mt.textContent=m.note||'';mt.style.display=m.note?'block':'none';$('cw').style.setProperty('--mh',(m.note?mt.offsetHeight:0)+'px');fit();apply(scenes[m.id]||E);$('cn').textContent=m.name||'–';$('sp').classList.add('hidden')}$('info').textContent=imgs.length?(idx+1)+' / '+imgs.length:'– / –';thumbs();updUR()}
-function thumbs(){const t=$('th');t.innerHTML='';imgs.forEach((m,i)=>{const b=document.createElement('button');b.className='tn'+(i===idx?' on':'');b.textContent=i+1;b.title=m.name;b.onclick=()=>go(i);t.appendChild(b)});const has=imgs.length>0;['pv','nx','ex','rm','rl','rr'].forEach(k=>$(k).disabled=!has)}
+async function loadImg(blob){return new Promise(async res=>{const u=URL.createObjectURL(blob),im=new Image();let note='';try{note=parseNote(new Uint8Array(await blob.slice(0,1500000).arrayBuffer()))}catch(e){}im.onload=()=>res({img:im,url:u,note:note});im.onerror=()=>{URL.revokeObjectURL(u);res(null)};im.src=u})}
+async function addFiles(files){if(!files.length)return;files.sort(cmp);const items=(await Promise.all(files.map(async f=>{const r=await loadImg(f);return r&&{id:nid(),name:f.name,blob:f,img:r.img,url:r.url,w:r.img.naturalWidth,h:r.img.naturalHeight,note:r.note||''}}))).filter(Boolean);if(!items.length)return;const curId=imgs[idx]&&imgs[idx].id;if(curId){select(null);save()}items.forEach(m=>{scenes[m.id]=E;hist[m.id]={past:[E],future:[]}});imgs=imgs.concat(items).sort(cmp);idx=curId?imgs.findIndex(m=>m.id===curId):0;show(idx);autosave();const nn=items.filter(m=>m.note).length;toast(nn?nn+' opmerking(en) gevonden':'Geen opmerking in foto gevonden')}
+function show(i){idx=i;const m=imgs[i];const mt=$('meta');if(!m){mt.textContent='';mt.style.display='none';fit();apply(E);$('cn').textContent='–';$('sp').classList.remove('hidden')}else{mt.textContent=m.note||'';mt.style.display=m.note?'block':'none';fit();apply(scenes[m.id]||E);$('cn').textContent=m.name||'–';$('sp').classList.add('hidden')}$('info').textContent=imgs.length?(idx+1)+' / '+imgs.length:'– / –';thumbs();updUR()}
+function thumbs(){const t=$('th');t.innerHTML='';imgs.forEach((m,i)=>{const b=document.createElement('button');b.className='tn'+(i===idx?' on':'');b.textContent=i+1;b.title=m.name;b.onclick=()=>go(i);t.appendChild(b)});const has=imgs.length>0;['pv','nx','ex','rm'].forEach(k=>$(k).disabled=!has)}
 function go(i){if(!imgs.length||i===idx)return;select(null);save();show(i)}
 const step=d=>imgs.length&&go((idx+d+imgs.length)%imgs.length);
 $('pv').onclick=()=>step(-1);$('nx').onclick=()=>step(1);
 $('ad').onclick=$('sp').onclick=()=>$('fi').click();
-async function rotatePhoto(dir){const m=imgs[idx];if(!m)return;select(null);toast('Draaien…');try{
-const old=LH,k=LW/old,sw=m.img.naturalWidth,sh=m.img.naturalHeight;
-const c=document.createElement('canvas');c.width=sh;c.height=sw;const x=c.getContext('2d');if(dir>0){x.translate(sh,0);x.rotate(Math.PI/2)}else{x.translate(0,sw);x.rotate(-Math.PI/2)}x.drawImage(m.img,0,0);
-const blob=await new Promise((ok,no)=>c.toBlob(b=>b?ok(b):no(new Error('canvas')),'image/jpeg',.95));c.width=c.height=1;
-const r=await loadImg(blob);if(!r)throw new Error('laden');
-const mp=dir>0?(a,b)=>({x:LW-k*b,y:k*a}):(a,b)=>({x:k*b,y:LW*LW/old-k*a});
-kids().forEach(n=>{if(n.className==='Line'||n.className==='Arrow'){const T=n.getTransform(),a=n.points(),s=(Math.abs(n.scaleX())+Math.abs(n.scaleY()))/2,np=[];for(let i=0;i<a.length;i+=2){const q=T.point({x:a[i],y:a[i+1]}),o=mp(q.x,q.y);np.push(o.x,o.y)}
-const at={x:0,y:0,rotation:0,scaleX:1,scaleY:1,offsetX:0,offsetY:0,skewX:0,skewY:0,points:np,strokeWidth:n.strokeWidth()*s};const d=n.dash();if(d&&d.length)at.dash=d.map(v=>v*s);
-if(n.className==='Arrow'){at.pointerLength=n.pointerLength()*s;at.pointerWidth=n.pointerWidth()*s}const hs=n.hitStrokeWidth();if(typeof hs==='number'&&hs>0)at.hitStrokeWidth=hs*s;n.setAttrs(at)}
-else{const o=mp(n.x(),n.y());n.setAttrs({x:o.x,y:o.y,rotation:n.rotation()+(dir>0?90:-90)})}});
-const j=JSON.stringify(kids().map(n=>n.toJSON()));
-URL.revokeObjectURL(m.url);m.blob=blob;m.img=r.img;m.url=r.url;m.w=r.img.naturalWidth;m.h=r.img.naturalHeight;
-scenes[m.id]=j;hist[m.id]={past:[j],future:[]};show(idx);autosave();toast('Foto gedraaid')}catch(e){toast('Draaien mislukt','err')}}
-const VER='v1.6';$('ver').textContent='Project Flow '+VER;
-function segList(u){const o=[];if(!(u[0]===0xFF&&u[1]===0xD8))return null;let p=2;while(p+4<u.length&&o.length<40){if(u[p]!==0xFF){p++;continue}const t=u[p+1];if(t===0xFF){p++;continue}if(t===0xDA||t===0xD9)break;if(t>=0xD0&&t<=0xD8||t===1){p+=2;continue}const len=(u[p+2]<<8)|u[p+3];let id='';for(let i=0;i<14&&p+4+i<u.length;i++){const c=u[p+4+i];id+=c>=32&&c<127?String.fromCharCode(c):''}o.push('APP'+(t-0xE0)+(t>=0xE0&&t<=0xEF?'':'/'+t.toString(16))+' '+id.slice(0,13)+' ('+len+'B)');p+=2+len}return o}
-function exifTags(u){try{let p=2;while(p+4<u.length){if(u[p]!==0xFF){p++;continue}const t=u[p+1];if(t===0xDA)break;const len=(u[p+2]<<8)|u[p+3];if(t===0xE1&&u[p+4]===0x45&&u[p+5]===0x78){const b=p+10,le=u[b]===0x49;const g16=o=>le?(u[o]|u[o+1]<<8):(u[o]<<8|u[o+1]);const g32=o=>(le?(u[o]|u[o+1]<<8|u[o+2]<<16|u[o+3]<<24):(u[o]<<24|u[o+1]<<16|u[o+2]<<8|u[o+3]))>>>0;const out=[];const walk=(o,nm)=>{const n=g16(b+o);for(let i=0;i<n&&i<60;i++){const en=b+o+2+i*12,tag=g16(en),ty=g16(en+2),cnt=g32(en+4);let s=tag.toString(16).toUpperCase().padStart(4,'0');if(ty===2&&cnt>1&&cnt<200){const vo=cnt<=4?en+8:b+g32(en+8);let v='';for(let k=0;k<cnt-1&&vo+k<u.length;k++){const c=u[vo+k];v+=c>=32&&c<127?String.fromCharCode(c):'?'}s+='="'+v.slice(0,40)+'"'}out.push(nm+s);if(tag===0x8769)walk(g32(en+8),'E:')}};walk(g32(b+4),'');return out}p+=2+len}}catch(e){}return null}
-async function showDiag(){const m=imgs[idx];let t='Project Flow '+VER+'\n';if(!m){t+='\nGeen foto geopend.'}else{const b=m.blob;let u=new Uint8Array(0);try{u=new Uint8Array(await b.slice(0,1500000).arrayBuffer())}catch(e){t+='\nLezen mislukt: '+e.message+'\n'}
-t+='\nBestand: '+m.name+'\nType: '+(b.type||'?')+'\nGrootte: '+Math.round(b.size/1024)+' KB\nAfmeting: '+m.w+' x '+m.h+'\nOpmerking in app: '+(m.note?'"'+m.note+'"':'GEEN')+'\nOpnieuw uitlezen: '+(parseNote(u)?'"'+parseNote(u)+'"':'GEEN')+'\n';
-const sg=segList(u);t+='\nOnderdelen in bestand:\n'+(sg?sg.join('\n'):'(geen JPEG, begin: '+Array.from(u.subarray(0,12)).map(c=>c.toString(16).padStart(2,'0')).join(' ')+')');
-const et=exifTags(u);if(et)t+='\n\nEXIF-velden:\n'+et.join(' ');
-const x=new TextDecoder().decode(u);const xm=x.match(/<(dc:description|dc:title|photoshop:Headline|exif:UserComment|iptc[^ >]*Caption[^ >]*)[^>]*>[\s\S]{0,200}/g);t+='\n\nXMP-velden: '+(xm?xm.map(s=>s.replace(/\s+/g,' ').slice(0,160)).join(' | '):'geen')}
-let d=$('dg');if(d)d.remove();d=document.createElement('div');d.id='dg';d.style.cssText='position:fixed;inset:0;z-index:100000;background:#000e;color:#fff;padding:16px;display:flex;flex-direction:column;gap:10px;font:12px/1.4 monospace';const pre=document.createElement('pre');pre.style.cssText='flex:1;overflow:auto;white-space:pre-wrap;margin:0;word-break:break-all';pre.textContent=t;const bar=document.createElement('div');bar.style.cssText='display:flex;gap:10px';const mk=(l,f)=>{const q=document.createElement('button');q.textContent=l;q.className='bt';q.style.cssText='padding:12px 20px;font-size:14px';q.onclick=f;bar.appendChild(q)};mk('Sluiten',()=>d.remove());mk('Kopieer',()=>{try{navigator.clipboard.writeText(t);toast('Gekopieerd')}catch(e){}});d.append(pre,bar);document.body.appendChild(d)}
-$('ib').onclick=showDiag;
-$('rl').onclick=()=>rotatePhoto(-1);$('rr').onclick=()=>rotatePhoto(1);
-
-$('fi').onchange=async e=>{try{await addFiles([...e.target.files])}catch(err){toast('Uploaden mislukt: '+(err&&err.message||err),'err')}e.target.value=''};
+$('fi').onchange=async e=>{await addFiles([...e.target.files]);e.target.value=''};
 $('rm').onclick=$('rp').onclick=async()=>{const m=imgs[idx];if(!m)return;if(!await modal('Verwijder foto "'+m.name+'"?'))return;URL.revokeObjectURL(m.url);delete scenes[m.id];delete hist[m.id];imgs.splice(idx,1);show(imgs.length?Math.min(idx,imgs.length-1):-1);autosave()};
 $('ca').onclick=async()=>{if(!await modal("Alle foto's wissen?"))return;imgs.forEach(m=>URL.revokeObjectURL(m.url));imgs=[];for(const k in scenes)delete scenes[k];show(-1);autosave()};
 $('cl').onclick=async()=>{if(await modal('Alle tekeningen op dit beeld wissen?')){apply(E);commit();save()}};
@@ -355,10 +307,10 @@ $('ea').onclick=async()=>{if(!imgs.length)return;const keepI=idx,files=[],used={
 $('bk').onclick=async()=>{try{save();const rd=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});const o={app:'Project Flow',v:1,scenes:scenes,imgs:await Promise.all(imgs.map(async m=>({id:m.id,name:m.name,w:m.w,h:m.h,note:m.note||'',d:await rd(m.blob)})))};await deliver([new File([JSON.stringify(o)],'ProjectFlow-backup-'+new Date().toISOString().slice(0,10)+'.json',{type:'application/json'})])}catch(e){toast('Back-up mislukt','err')}};
 $('bl').onclick=()=>$('bf').click();
 $('bf').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;const d=JSON.parse(await f.text());if(!d.imgs)throw 0;const out=[];for(const it of d.imgs){const b=await (await fetch(it.d)).blob(),r=await loadImg(b);if(r)out.push({id:it.id,name:it.name,blob:b,w:it.w,h:it.h,img:r.img,url:r.url,note:it.note||r.note||''})}imgs.forEach(m=>URL.revokeObjectURL(m.url));imgs=out;for(const m of imgs){scenes[m.id]=(d.scenes||{})[m.id]||E;hist[m.id]={past:[scenes[m.id]],future:[]}}show(0);autosave();toast('Back-up geladen')}catch(x){toast('Ongeldig bestand','err')}e.target.value=''};
-if('serviceWorker' in navigator&&location.protocol==='https:'){const had=!!navigator.serviceWorker.controller;navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!had)return;if(!imgs.length)location.reload();else toast('Nieuwe versie beschikbaar – sluit de app en open hem opnieuw','err')})}
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 size();setTool('select');thumbs();
 (async()=>{const d=await dbGet();if(!d||!d.imgs||!d.imgs.length)return;const out=[];for(const it of d.imgs){const r=await loadImg(it.blob);if(r)out.push({id:it.id,name:it.name,blob:it.blob,w:it.w,h:it.h,img:r.img,url:r.url,note:it.note||r.note||''})}if(!out.length)return;imgs=out;for(const m of imgs){scenes[m.id]=(d.scenes||{})[m.id]||E;hist[m.id]={past:[scenes[m.id]],future:[]}}show(Math.min(Math.max(d.idx||0,0),imgs.length-1));toast('Vorige sessie hersteld')})();
-console.log('%cProject Flow v1.6 - (c) 2026 Project Flow','font-weight:bold');
+console.log('%cProject Flow v1.1 - (c) 2026 Project Flow','font-weight:bold');
 let _rt;new ResizeObserver(()=>{clearTimeout(_rt);_rt=setTimeout(()=>{const s=$('stage');if(Math.abs(s.clientWidth-W)>2||Math.abs(s.clientHeight-H)>2)fit()},120)}).observe($('stage'));
 })();
 </script>
