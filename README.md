@@ -2,9 +2,11 @@
 
 Een professionele tekenapp voor iPad. Voeg foto's toe, plaats symbolen, teken lijnen en exporteer alles als ZIP.
 
+**Versie:** v1.20
+
 **Licentie:** © 2026 Project Flow. Alle rechten voorbehouden. Geen toestemming voor kopiëren, aanpassen of commercieel gebruik zonder schriftelijke toestemming.
 
-**Privacy:** Alle werk blijft op jouw iPad. Geen gegevens gaan naar externe servers.
+**Privacy:** Alle tekeningen en foto's blijven lokaal op jouw iPad (IndexedDB). Optionele anonieme gebruiksstatistieken via Cloudflare Web Analytics (geen cookies, geen persoonlijke data).
 
 **Installatie:** Zet de app op je beginscherm via Safari: Deel → Zet op beginscherm.
 
