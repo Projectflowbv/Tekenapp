@@ -172,7 +172,7 @@ html.dk .pen.on{background:#30d158;color:#000}
 <script>
 (function(){
 'use strict';
-const VER='v1.23';const $=id=>document.getElementById(id);
+const VER='v1.24';const $=id=>document.getElementById(id);
 if(!window.Konva){document.body.innerHTML='<h2 style="padding:40px">Konva niet geladen</h2>';return}
 Konva.pixelRatio=Math.min(devicePixelRatio||1,3);
 const toast=(m,t)=>{const e=document.createElement('div');e.className='toast '+(t||'');e.textContent=m;$('toasts').appendChild(e);setTimeout(()=>e.classList.add('show'),10);setTimeout(()=>{e.classList.remove('show');setTimeout(()=>e.remove(),300)},t==='err'?7000:3000)};
@@ -247,8 +247,8 @@ let g=null;const cw=$('cw');const T=e=>[...e.touches].filter(t=>t.touchType!=='s
 cw.addEventListener('touchstart',e=>{if(T(e).length===2){if(shape){shape.destroy();shape=null}const c=tp(e);g={x:c.x,y:c.y,d:c.d,k:stage.scaleX(),px:stage.x(),py:stage.y()};e.preventDefault()}},{passive:false});
 cw.addEventListener('touchmove',e=>{if(!g||T(e).length!==2)return;e.preventDefault();const c=tp(e),r=cw.getBoundingClientRect(),k=Math.min(Math.max(g.k*c.d/g.d,base*.7),base*10);const wx=(g.x-r.left-g.px)/g.k,wy=(g.y-r.top-g.py)/g.k;let x=c.x-r.left-wx*k,y=c.y-r.top-wy*k;const iw=LW*k,ih=LH*k;x=iw<=W?(W-iw)/2:Math.min(0,Math.max(W-iw,x));y=ih<=H?(H-ih)/2:Math.min(0,Math.max(H-ih,y));stage.scale({x:k,y:k});stage.position({x:x,y:y});view()},{passive:false});
 cw.addEventListener('touchend',e=>{if(g&&T(e).length<2){g=null;if(stage.scaleX()<=base*1.03)home();else{clearTimeout(zt);zt=setTimeout(fitImg,250)}}});
-stage.on('pointerdown',e=>{const ty=e.evt.pointerType||'mouse',bgHit=e.target===stage||e.target.getLayer()===bgL;if($('po').checked&&ty==='touch'){if(bgHit)select(null);return}let pos=wp();if(!pos)return;if(pend){place(pend,pos.x,pos.y);return}if(tool==='line'||tool==='arrow'){select(null);pos=snapPt(pos,18/stage.scaleX())||pos;begin(pos);return}if(tool==='text'){select(null);const v=prompt('Tekst:');if(v){mkText(v,pos.x,pos.y,22);setTool('select')}return}if(bgHit)select(null)});
-stage.on('pointermove',()=>{if(!shape)return;let pos=wp();if(!pos)return;pos=snapPt(pos,18/stage.scaleX())||pos;const a=shape.points();a[2]=pos.x;a[3]=pos.y;shape.points(a);dl.batchDraw()});
+stage.on('pointerdown',e=>{const ty=e.evt.pointerType||'mouse',bgHit=e.target===stage||e.target.getLayer()===bgL;if($('po').checked&&ty==='touch'){if(bgHit)select(null);return}let pos=wp();if(!pos)return;if(pend){place(pend,pos.x,pos.y);return}if(tool==='line'||tool==='arrow'){select(null);pos=snapPt(pos,26/stage.scaleX())||pos;begin(pos);return}if(tool==='text'){select(null);const v=prompt('Tekst:');if(v){mkText(v,pos.x,pos.y,22);setTool('select')}return}if(bgHit)select(null)});
+stage.on('pointermove',()=>{if(!shape)return;let pos=wp();if(!pos)return;pos=snapPt(pos,26/stage.scaleX())||pos;const a=shape.points();a[2]=pos.x;a[3]=pos.y;shape.points(a);dl.batchDraw()});
 function begin(pos){const t=LT[lt],u=1/base,o={points:[pos.x,pos.y,pos.x,pos.y],stroke:t.c,strokeWidth:t.w*u,dash:(t.d||[]).map(v=>v*u),lineCap:'butt',lineJoin:'miter',hitStrokeWidth:24*u,perfectDrawEnabled:false};if(tool==='line')shape=new Konva.Line(o);else{o.fill=t.c;o.pointerLength=o.pointerWidth=t.p*u;shape=new Konva.Arrow(o)}dl.add(shape);enable(shape)}
 function mkText(txt,x,y,fs,c){const t=new Konva.Text({x:x,y:y,text:txt,fontSize:fs/base,fill:'#FFC000',fontStyle:'bold',padding:4/base,perfectDrawEnabled:false,name:'top'});if(c)t.position({x:x-t.width()/2,y:y-t.height()/2});dl.add(t);enable(t);select(null);commit();save();return t}
 function mkShape(d){const o={fill:d.c,stroke:'#000',strokeWidth:1.5,perfectDrawEnabled:false};if(d.k==='tri')return new Konva.RegularPolygon({...o,sides:3,radius:22});if(d.k==='dia')return new Konva.RegularPolygon({...o,sides:4,radius:22});if(d.k==='sq')return new Konva.Rect({...o,x:-20,y:-20,width:40,height:40});if(d.k==='tb'){const g=new Konva.Group();g.add(new Konva.Rect({x:-20,y:-20,width:40,height:40,fill:'#fff',stroke:'#000',strokeWidth:3,perfectDrawEnabled:false}));g.add(new Konva.Text({x:-20,y:-20,width:40,height:40,text:'T',fontSize:28,fontStyle:'bold',fill:'#000',align:'center',verticalAlign:'middle',listening:false}));return g}if(d.k==='lab'){const g=new Konva.Group();g.add(new Konva.Rect({...o,x:-24,y:-15,width:48,height:30}));g.add(new Konva.Text({x:-24,y:-15,width:48,height:30,text:d.t,fontSize:15,fontStyle:'bold',fill:'#000',align:'center',verticalAlign:'middle',listening:false}));return g}return new Konva.Circle({...o,radius:10})}
@@ -359,7 +359,7 @@ function exif(u,t,e,r){
 
 async function readNote(blob){const sl=blob.slice(0,1500000);let buf;if(sl.arrayBuffer)buf=await sl.arrayBuffer();else buf=await new Promise((ok,no)=>{const f=new FileReader();f.onload=()=>ok(f.result);f.onerror=no;f.readAsArrayBuffer(sl)});return parseNote(new Uint8Array(buf))}
 const tryImg=b=>new Promise(res=>{const u=URL.createObjectURL(b),im=new Image();im.onload=()=>res({img:im,url:u,blob:b});im.onerror=()=>{URL.revokeObjectURL(u);res(null)};im.src=u});
-async function shrink(src,w,h,max){const s=Math.min(1,max/Math.max(w,h)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(w*s));c.height=Math.max(1,Math.round(h*s));const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.imageSmoothingQuality='high';x.drawImage(src,0,0,c.width,c.height);const nb=await new Promise(ok=>c.toBlob(ok,'image/jpeg',.92));c.width=c.height=1;return nb}
+async function shrink(src,w,h,max){const s=Math.min(1,max/Math.max(w,h)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(w*s));c.height=Math.max(1,Math.round(h*s));const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.imageSmoothingQuality='high';x.drawImage(src,0,0,c.width,c.height);const nb=await new Promise(ok=>c.toBlob(ok,'image/jpeg',.95));c.width=c.height=1;return nb}
 const loadScript=s=>new Promise((ok,no)=>{const e=document.createElement('script');e.src=s;e.onload=ok;e.onerror=()=>no(new Error('script'));document.head.appendChild(e)});
 async function isHeic(b){if(/hei[cf]/i.test((b.type||'')+' '+(b.name||'')))return true;try{const a=new Uint8Array(await b.slice(0,16).arrayBuffer());const t=String.fromCharCode(a[4],a[5],a[6],a[7],a[8],a[9],a[10],a[11]);return /^ftyp(hei|hev|mif|msf)/.test(t)}catch(e){return false}}
 let lastErr='';
@@ -432,7 +432,7 @@ else{const o=mp(n.x(),n.y());n.setAttrs({x:o.x,y:o.y,rotation:n.rotation()+(dir>
 const j=JSON.stringify(kids().map(n=>n.toJSON()));
 URL.revokeObjectURL(m.url);m.blob=blob;m.img=r.img;m.url=r.url;m.w=r.img.naturalWidth;m.h=r.img.naturalHeight;
 scenes[m.id]=j;hist[m.id]={past:[j],future:[]};show(idx);autosave();toast('Foto gedraaid')}catch(e){toast('Draaien mislukt','err')}}
-$('ver').textContent='Project Flow '+VER;$('ft').textContent='Project Flow '+VER+' · © 2026 Project Flow';
+$('ver').textContent='Project Flow '+VER+' · tik om te starten';$('ft').textContent='Project Flow '+VER+' · © 2026 Project Flow';
 function segList(u){const o=[];if(!(u[0]===0xFF&&u[1]===0xD8))return null;let p=2;while(p+4<u.length&&o.length<40){if(u[p]!==0xFF){p++;continue}const t=u[p+1];if(t===0xFF){p++;continue}if(t===0xDA||t===0xD9)break;if(t>=0xD0&&t<=0xD8||t===1){p+=2;continue}const len=(u[p+2]<<8)|u[p+3];let id='';for(let i=0;i<14&&p+4+i<u.length;i++){const c=u[p+4+i];id+=c>=32&&c<127?String.fromCharCode(c):''}o.push('APP'+(t-0xE0)+(t>=0xE0&&t<=0xEF?'':'/'+t.toString(16))+' '+id.slice(0,13)+' ('+len+'B)');p+=2+len}return o}
 function exifTags(u){try{let p=2;while(p+4<u.length){if(u[p]!==0xFF){p++;continue}const t=u[p+1];if(t===0xDA)break;const len=(u[p+2]<<8)|u[p+3];if(t===0xE1&&u[p+4]===0x45&&u[p+5]===0x78){const b=p+10,le=u[b]===0x49;const g16=o=>le?(u[o]|u[o+1]<<8):(u[o]<<8|u[o+1]);const g32=o=>(le?(u[o]|u[o+1]<<8|u[o+2]<<16|u[o+3]<<24):(u[o]<<24|u[o+1]<<16|u[o+2]<<8|u[o+3]))>>>0;const out=[];const walk=(o,nm)=>{const n=g16(b+o);for(let i=0;i<n&&i<60;i++){const en=b+o+2+i*12,tag=g16(en),ty=g16(en+2),cnt=g32(en+4);let s=tag.toString(16).toUpperCase().padStart(4,'0');if(ty===2&&cnt>1&&cnt<200){const vo=cnt<=4?en+8:b+g32(en+8);let v='';for(let k=0;k<cnt-1&&vo+k<u.length;k++){const c=u[vo+k];v+=c>=32&&c<127?String.fromCharCode(c):'?'}s+='="'+v.slice(0,40)+'"'}out.push(nm+s);if(tag===0x8769)walk(g32(en+8),'E:')}};walk(g32(b+4),'');return out}p+=2+len}}catch(e){}return null}
 async function showDiag(){const m=imgs[idx];let t='Project Flow '+VER+'\n';if(!m){t+='\nGeen foto geopend.'}else{const b=m.blob;let u=new Uint8Array(0);try{u=new Uint8Array(await b.slice(0,1500000).arrayBuffer())}catch(e){t+='\nLezen mislukt: '+e.message+'\n'}
@@ -465,14 +465,14 @@ async function renderBlob(){
   const prevScale=stage.scaleX(),prevPos={x:stage.x(),y:stage.y()},prevSize={width:stage.width(),height:stage.height()};
   stage.scale({x:1,y:1});stage.position({x:0,y:0});stage.size({width:LW,height:LH});
   bg.image(m.img);bgL.draw();dl.draw();
-  let q=.90,b;
+  let q=.93,b;
   try{
-    // Start at good quality; only reduce if needed (fewer iterations = faster)
-    for(let i=0;i<5;i++){
+    // High quality first (text/details readable); only reduce if file huge
+    for(let i=0;i<4;i++){
       const u=stage.toDataURL({mimeType:'image/jpeg',quality:q,x:r.x,y:r.y,width:r.width,height:r.height,pixelRatio:pr});
       b=await (await fetch(u)).blob();
-      if(b.size<=1600*1024||q<=.65)break;
-      q-=.07;
+      if(b.size<=2200*1024||q<=.78)break;
+      q-=.05;
     }
   }finally{
     stage.scale({x:prevScale,y:prevScale});stage.position(prevPos);stage.size(prevSize);fit();
@@ -491,7 +491,11 @@ function getBatchTag(){
   return {date:d,seq:st.part+'.'+st.count};
 }
 async function deliver(files,forceDownload=false){
-  if(!forceDownload){
+  // Large ZIP/files: skip share-sheet (OneDrive via share often hangs on iPad).
+  // Force classic download → user saves to "Op mijn iPad" then moves to OneDrive.
+  const totalSize = files.reduce((s,f)=>s+(f.size||0),0);
+  const isLarge = totalSize > 8*1024*1024 || files.some(f=>/\.zip$/i.test(f.name||''));
+  if(!forceDownload && !isLarge){
     try{
       if(navigator.share&&(!navigator.canShare||navigator.canShare({files:files}))){
         await navigator.share({files:files,title:files[0]&&files[0].name});
@@ -500,13 +504,15 @@ async function deliver(files,forceDownload=false){
     }catch(e){if(e&&e.name==='AbortError')return}
   }
   for(const f of files){
-    const u=URL.createObjectURL(f),a=document.createElement('a');
-    a.href=u;a.download=f.name;a.rel='noopener';a.style.display='none';
+    const file = (f.lastModified) ? f : new File([f], f.name, {type:f.type||'application/octet-stream', lastModified:Date.now()});
+    const u=URL.createObjectURL(file),a=document.createElement('a');
+    a.href=u;a.download=file.name;a.rel='noopener';a.style.display='none';
     document.body.appendChild(a);a.click();
     setTimeout(()=>a.remove(),4000);
     setTimeout(()=>URL.revokeObjectURL(u),300000);
-    await new Promise(r=>setTimeout(r,180)); // sneller tussen downloads
+    await new Promise(r=>setTimeout(r,220));
   }
+  if(isLarge) toast('Tip: bewaar eerst op iPad, daarna verplaatsen naar OneDrive');
 }
 async function buildBackupObject(){
   save();
@@ -517,8 +523,13 @@ $('ex').onclick=$('e1').onclick=async()=>{if(idx<0)return;try{const b=await rend
 const crcT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
 const crc=b=>{let c=-1;for(let i=0;i<b.length;i++)c=crcT[(c^b[i])&255]^(c>>>8);return(c^-1)>>>0};
 function dosDateTime(dt){
-  const y=Math.max(1980,dt.getFullYear())-1980,m=dt.getMonth()+1,d=dt.getDate();
-  const hr=dt.getHours(),mn=dt.getMinutes(),sc=Math.floor(dt.getSeconds()/2);
+  // ZIP DOS date: years from 1980, valid month 1-12, day 1-31
+  const y=Math.min(127,Math.max(0,(dt.getFullYear()||2026)-1980));
+  const m=Math.min(12,Math.max(1,(dt.getMonth()||0)+1));
+  const d=Math.min(31,Math.max(1,dt.getDate()||1));
+  const hr=Math.min(23,Math.max(0,dt.getHours()||0));
+  const mn=Math.min(59,Math.max(0,dt.getMinutes()||0));
+  const sc=Math.min(29,Math.max(0,Math.floor((dt.getSeconds()||0)/2)));
   return {date:(y<<9)|(m<<5)|d,time:(hr<<11)|(mn<<5)|sc};
 }
 async function zip(files){

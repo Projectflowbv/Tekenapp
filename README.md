@@ -2,7 +2,7 @@
 
 Een professionele tekenapp voor iPad. Voeg foto's toe, plaats symbolen, teken lijnen en exporteer alles als ZIP.
 
-**Versie:** v1.20
+**Versie:** v1.24
 
 **Licentie:** © 2026 Project Flow. Alle rechten voorbehouden. Geen toestemming voor kopiëren, aanpassen of commercieel gebruik zonder schriftelijke toestemming.
 
